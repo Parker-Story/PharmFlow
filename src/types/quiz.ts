@@ -27,5 +27,7 @@ export interface QuizAttemptAnswer {
 export interface ProcessingResult {
   success: boolean;
   quizId?: string;
+  questions?: QuizQuestion[];
+  isOneOff?: boolean;
   error?: string;
 }
