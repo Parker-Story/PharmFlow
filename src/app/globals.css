@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Pastel pink / rose theme */
+    --background: 0 0% 100%;
+    --foreground: 340 10% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 340 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 340 10% 15%;
+
+    --primary: 340 75% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 30% 94%;
+    --secondary-foreground: 340 30% 30%;
+
+    --muted: 340 20% 96%;
+    --muted-foreground: 340 10% 50%;
+
+    --accent: 320 40% 92%;
+    --accent-foreground: 320 40% 30%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 20% 88%;
+    --input: 340 20% 88%;
+    --ring: 340 75% 60%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 340 10% 8%;
+    --foreground: 340 10% 95%;
+
+    --card: 340 10% 11%;
+    --card-foreground: 340 10% 95%;
+
+    --popover: 340 10% 11%;
+    --popover-foreground: 340 10% 95%;
+
+    --primary: 340 75% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 10% 17%;
+    --secondary-foreground: 340 10% 80%;
+
+    --muted: 340 10% 15%;
+    --muted-foreground: 340 10% 55%;
+
+    --accent: 320 20% 18%;
+    --accent-foreground: 320 20% 80%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 10% 20%;
+    --input: 340 10% 20%;
+    --ring: 340 75% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
