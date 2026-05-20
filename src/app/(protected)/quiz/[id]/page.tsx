@@ -74,9 +74,9 @@ export default async function QuizPage({ params }: PageProps) {
           This quiz is still being generated. Check back in a moment.
         </p>
         <Button asChild variant="outline" className="mt-6">
-          <Link href="/quizzes">
+          <Link href="/library">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Quizzes
+            Library
           </Link>
         </Button>
       </div>
@@ -122,9 +122,9 @@ export default async function QuizPage({ params }: PageProps) {
     <div className="mx-auto max-w-xl">
       <div className="mb-6">
         <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
-          <Link href="/quizzes">
+          <Link href="/library">
             <ArrowLeft className="mr-1 h-4 w-4" />
-            My Quizzes
+            Library
           </Link>
         </Button>
         <h1 className="text-2xl font-bold">{quiz.title}</h1>

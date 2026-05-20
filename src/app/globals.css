@@ -4,66 +4,74 @@
 
 @layer base {
   :root {
-    /* Pastel pink / rose theme */
-    --background: 0 0% 100%;
-    --foreground: 340 10% 15%;
+    /* Better Canvas palette — exact source colors */
+    --background: 30 80% 94%;        /* #fdf0e3 warm cream parchment */
+    --foreground: 40 95% 11%;        /* #372601 dark warm brown */
 
-    --card: 0 0% 100%;
-    --card-foreground: 340 10% 15%;
+    --card: 30 80% 94%;              /* matches background — border/shadow defines cards */
+    --card-foreground: 40 95% 11%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 340 10% 15%;
+    --popover: 30 80% 94%;
+    --popover-foreground: 40 95% 11%;
 
-    --primary: 340 75% 60%;
+    --primary: 347 34% 44%;          /* #95485C dusty mauve rose */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 340 30% 94%;
-    --secondary-foreground: 340 30% 30%;
+    --secondary: 46 22% 54%;         /* #A29670 warm khaki */
+    --secondary-foreground: 40 95% 11%;
 
-    --muted: 340 20% 96%;
-    --muted-foreground: 340 10% 50%;
+    --muted: 30 40% 90%;
+    --muted-foreground: 40 30% 44%;
 
-    --accent: 320 40% 92%;
-    --accent-foreground: 320 40% 30%;
+    --accent: 59 26% 26%;            /* #535231 dark olive */
+    --accent-foreground: 30 55% 92%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 340 20% 88%;
-    --input: 340 20% 88%;
-    --ring: 340 75% 60%;
+    --border: 46 22% 62%;
+    --input: 46 22% 62%;
+    --ring: 347 34% 44%;
+
+    --navbar: 15 40% 68%;            /* #cf9e8e dusty rose/terracotta */
+    --navbar-foreground: 96 14% 89%; /* #e2e8de soft sage */
+    --nav-active: 59 26% 28%;        /* #535231 dark olive active tab */
 
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 340 10% 8%;
-    --foreground: 340 10% 95%;
+    --background: 40 30% 12%;
+    --foreground: 30 55% 88%;
 
-    --card: 340 10% 11%;
-    --card-foreground: 340 10% 95%;
+    --card: 40 25% 15%;
+    --card-foreground: 30 55% 88%;
 
-    --popover: 340 10% 11%;
-    --popover-foreground: 340 10% 95%;
+    --popover: 40 25% 15%;
+    --popover-foreground: 30 55% 88%;
 
-    --primary: 340 75% 65%;
+    --primary: 347 34% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 340 10% 17%;
-    --secondary-foreground: 340 10% 80%;
+    --secondary: 46 18% 22%;
+    --secondary-foreground: 30 40% 75%;
 
-    --muted: 340 10% 15%;
-    --muted-foreground: 340 10% 55%;
+    --muted: 40 20% 18%;
+    --muted-foreground: 40 15% 55%;
 
-    --accent: 320 20% 18%;
-    --accent-foreground: 320 20% 80%;
+    --accent: 59 22% 22%;
+    --accent-foreground: 30 40% 80%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 340 10% 20%;
-    --input: 340 10% 20%;
-    --ring: 340 75% 65%;
+    --border: 46 15% 22%;
+    --input: 46 15% 22%;
+    --ring: 347 34% 55%;
+
+    --navbar: 15 30% 28%;
+    --navbar-foreground: 96 14% 82%;
+    --nav-active: 59 22% 24%;
   }
 }
 

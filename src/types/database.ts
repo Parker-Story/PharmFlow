@@ -38,6 +38,27 @@ export type Database = {
         };
         Relationships: [];
       };
+      folders: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          parent_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          parent_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          parent_id?: string | null;
+        };
+        Relationships: [];
+      };
       quizzes: {
         Row: {
           id: string;
@@ -46,6 +67,7 @@ export type Database = {
           source_filename: string;
           question_count: number;
           status: QuizStatus;
+          folder_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -56,6 +78,7 @@ export type Database = {
           source_filename: string;
           question_count?: number;
           status?: QuizStatus;
+          folder_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -63,6 +86,7 @@ export type Database = {
           title?: string;
           question_count?: number;
           status?: QuizStatus;
+          folder_id?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -145,6 +169,7 @@ export type Database = {
 };
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type Folder = Database["public"]["Tables"]["folders"]["Row"];
 export type Quiz = Database["public"]["Tables"]["quizzes"]["Row"];
 export type Question = Database["public"]["Tables"]["questions"]["Row"];
 export type QuizAttempt = Database["public"]["Tables"]["quiz_attempts"]["Row"];

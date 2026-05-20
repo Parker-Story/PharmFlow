@@ -14,7 +14,44 @@ import { cn } from "@/lib/utils";
 const MAX_SIZE_MB = 10;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
-export function UploadForm() {
+type Difficulty = "easy" | "medium" | "hard";
+type QuestionType = "multiple_choice" | "true_false" | "mix";
+
+function SegmentedControl({
+  options,
+  value,
+  onChange,
+}: {
+  options: { label: string; value: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex gap-1 rounded-lg bg-muted p-1">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={cn(
+            "flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+            value === opt.value
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+interface UploadFormProps {
+  folders: { id: string; name: string }[];
+}
+
+export function UploadForm({ folders }: UploadFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [dragActive, setDragActive] = useState(false);
@@ -23,6 +60,12 @@ export function UploadForm() {
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [questionCount, setQuestionCount] = useState(20);
+  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  const [questionType, setQuestionType] = useState<QuestionType>("mix");
+  const [saveExam, setSaveExam] = useState(true);
+  const [folderId, setFolderId] = useState("");
 
   function handleFile(file: File) {
     setError(null);
@@ -50,9 +93,16 @@ export function UploadForm() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    formData.set("file", selectedFile);
+    formData.set("question_count", String(questionCount));
+    formData.set("difficulty", difficulty);
+    formData.set("question_type", questionType);
+    formData.set("save_exam", saveExam ? "true" : "false");
+    if (saveExam && folderId) formData.set("folder_id", folderId);
+
+    const title = (formData.get("title") as string) || "Practice Exam";
 
     startTransition(async () => {
-      // Fake progress animation while server processes
       const interval = setInterval(
         () => setProgress((p) => Math.min(p + 8, 85)),
         400
@@ -64,10 +114,18 @@ export function UploadForm() {
       if (result.success) {
         setProgress(100);
         setDone(true);
-        setTimeout(
-          () => router.push(result.quizId ? `/quiz/${result.quizId}` : "/quizzes"),
-          1200
-        );
+        if (result.isOneOff) {
+          sessionStorage.setItem(
+            "pharmflow_temp_quiz",
+            JSON.stringify({ title, questions: result.questions ?? [] })
+          );
+          setTimeout(() => router.push("/quiz/temp"), 1200);
+        } else {
+          setTimeout(
+            () => router.push(result.quizId ? `/quiz/${result.quizId}` : "/quizzes"),
+            1200
+          );
+        }
       } else {
         setProgress(0);
         setError(result.error ?? "Something went wrong.");
@@ -78,13 +136,100 @@ export function UploadForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-1.5">
-        <Label htmlFor="title">Quiz title</Label>
+        <Label htmlFor="title">Exam title</Label>
         <Input
           id="title"
           name="title"
           placeholder="e.g. Pharmacokinetics Week 4"
           required
         />
+      </div>
+
+      {/* Options */}
+      <div className="rounded-xl bg-muted/40 p-4 space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Questions</Label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setQuestionCount((c) => Math.max(5, c - 5))}
+                className="flex h-8 w-8 items-center justify-center rounded-md border bg-background text-lg font-medium hover:bg-accent disabled:opacity-40"
+                disabled={questionCount <= 5}
+              >
+                −
+              </button>
+              <span className="w-8 text-center text-sm font-semibold">{questionCount}</span>
+              <button
+                type="button"
+                onClick={() => setQuestionCount((c) => Math.min(50, c + 5))}
+                className="flex h-8 w-8 items-center justify-center rounded-md border bg-background text-lg font-medium hover:bg-accent disabled:opacity-40"
+                disabled={questionCount >= 50}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Difficulty</Label>
+            <SegmentedControl
+              options={[
+                { label: "Easy", value: "easy" },
+                { label: "Medium", value: "medium" },
+                { label: "Hard", value: "hard" },
+              ]}
+              value={difficulty}
+              onChange={(v) => setDifficulty(v as Difficulty)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Question type</Label>
+          <SegmentedControl
+            options={[
+              { label: "Multiple Choice", value: "multiple_choice" },
+              { label: "True / False", value: "true_false" },
+              { label: "Mix", value: "mix" },
+            ]}
+            value={questionType}
+            onChange={(v) => setQuestionType(v as QuestionType)}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Results</Label>
+          <SegmentedControl
+            options={[
+              { label: "Save to Library", value: "true" },
+              { label: "One-off", value: "false" },
+            ]}
+            value={saveExam ? "true" : "false"}
+            onChange={(v) => setSaveExam(v === "true")}
+          />
+          <p className="text-xs text-muted-foreground">
+            {saveExam
+              ? "Exam will be saved so you can retake it later."
+              : "Exam runs once and is not stored."}
+          </p>
+        </div>
+
+        {saveExam && (
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Save to folder</Label>
+            <select
+              value={folderId}
+              onChange={(e) => setFolderId(e.target.value)}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">Library root</option>
+              {folders.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Drop zone */}
@@ -139,9 +284,7 @@ export function UploadForm() {
         )}
       </div>
 
-      {error && (
-        <p className="text-sm text-destructive">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       {isPending && (
         <Card className="border-0 bg-primary/5">
@@ -165,7 +308,9 @@ export function UploadForm() {
       {done && (
         <div className="flex items-center gap-2 text-green-600">
           <CheckCircle className="h-5 w-5" />
-          <span className="font-medium">Quiz created! Redirecting…</span>
+          <span className="font-medium">
+            {saveExam ? "Exam saved! Redirecting…" : "Exam ready! Redirecting…"}
+          </span>
         </div>
       )}
 
@@ -183,7 +328,7 @@ export function UploadForm() {
         ) : (
           <>
             <Upload className="mr-2 h-4 w-4" />
-            Generate Quiz
+            Generate Exam
           </>
         )}
       </Button>

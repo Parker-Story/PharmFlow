@@ -4,35 +4,69 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { extractTextFromPdf, chunkText } from "@/lib/pdf/extract";
 import { generateQuestionsFromChunks } from "@/lib/ai/generate";
-import type { ProcessingResult } from "@/types/quiz";
+import type { ProcessingResult, QuizQuestion } from "@/types/quiz";
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export async function processUploadedPdf(
   formData: FormData
 ): Promise<ProcessingResult> {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, error: "Unauthorized" };
-  }
+  if (!user) return { success: false, error: "Unauthorized" };
 
   const file = formData.get("file") as File | null;
   const title = (formData.get("title") as string) || "Untitled Quiz";
+  const questionCount = Math.min(50, Math.max(5, Number(formData.get("question_count")) || 20));
+  const difficulty = (formData.get("difficulty") as "easy" | "medium" | "hard") || "medium";
+  const questionType = (formData.get("question_type") as "multiple_choice" | "true_false" | "mix") || "mix";
+  const saveExam = formData.get("save_exam") !== "false";
+  const folderId = (formData.get("folder_id") as string) || null;
 
   if (!file || file.type !== "application/pdf") {
     return { success: false, error: "Please upload a valid PDF file." };
   }
-
   if (file.size > MAX_FILE_SIZE) {
     return { success: false, error: "File must be under 10 MB." };
   }
 
-  // Create quiz row in "processing" state immediately
+  const questionTypes =
+    questionType === "multiple_choice" ? (["multiple_choice"] as const) :
+    questionType === "true_false" ? (["true_false"] as const) :
+    (["multiple_choice", "true_false"] as const);
+
+  let questions: QuizQuestion[] = [];
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const extracted = await extractTextFromPdf(buffer, file.name);
+    const chunks = chunkText(extracted.text);
+    const result = await generateQuestionsFromChunks(chunks, {
+      questionCount,
+      questionTypes: [...questionTypes],
+      difficulty,
+    });
+    questions = result.questions.map((q, i) => ({
+      id: `q-${i}`,
+      questionText: q.questionText,
+      questionType: q.questionType,
+      options: q.options,
+      correctAnswer: q.correctAnswer,
+      explanation: q.explanation,
+      orderIndex: i,
+    }));
+  } catch (err) {
+    console.error("PDF processing error:", err);
+    return { success: false, error: "Processing failed. Please try again." };
+  }
+
+  // One-off: return questions without touching the DB
+  if (!saveExam) {
+    return { success: true, isOneOff: true, questions };
+  }
+
+  // Stored: persist quiz + questions
   const { data: quiz, error: insertError } = await supabase
     .from("quizzes")
     .insert({
@@ -40,6 +74,7 @@ export async function processUploadedPdf(
       title,
       source_filename: file.name,
       status: "processing",
+      folder_id: folderId,
     })
     .select()
     .single();
@@ -49,36 +84,20 @@ export async function processUploadedPdf(
   }
 
   try {
-    // Convert File → Buffer (held only in server memory, never written to disk)
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Extract text — PDF is discarded after this point
-    const extracted = await extractTextFromPdf(buffer, file.name);
-    const chunks = chunkText(extracted.text);
-
-    // Generate questions (stub until AI is wired up)
-    const { questions } = await generateQuestionsFromChunks(chunks, {
-      questionCount: 20,
-      questionTypes: ["multiple_choice", "true_false"],
-      difficulty: "medium",
-    });
-
     if (questions.length > 0) {
       await supabase.from("questions").insert(
-        questions.map((q, i) => ({
+        questions.map((q) => ({
           quiz_id: quiz.id,
           question_text: q.questionText,
           question_type: q.questionType,
           options: q.options ?? null,
           correct_answer: q.correctAnswer,
           explanation: q.explanation ?? null,
-          order_index: i,
+          order_index: q.orderIndex,
         }))
       );
     }
 
-    // Mark quiz ready
     await supabase
       .from("quizzes")
       .update({ status: "ready", question_count: questions.length })
@@ -87,20 +106,14 @@ export async function processUploadedPdf(
     revalidatePath("/dashboard");
     return { success: true, quizId: quiz.id };
   } catch (err) {
-    console.error("PDF processing error:", err);
-
-    await supabase
-      .from("quizzes")
-      .update({ status: "failed" })
-      .eq("id", quiz.id);
-
+    console.error("Quiz save error:", err);
+    await supabase.from("quizzes").update({ status: "failed" }).eq("id", quiz.id);
     return { success: false, error: "Processing failed. Please try again." };
   }
 }
 
 export async function deleteQuiz(quizId: string): Promise<{ error?: string }> {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
