@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BookOpen, LayoutDashboard, Settings, LogOut } from "lucide-react";
+import { PharmacyIcon } from "@/components/ui/pharmacy-icon";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/lib/actions/auth";
 
@@ -26,7 +27,7 @@ export function Sidebar() {
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-5 h-16 border-b border-white/10 shrink-0">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-          <BookOpen className="h-4 w-4 text-white" />
+          <PharmacyIcon className="h-4 w-4 text-white" strokeWidth={2} />
         </div>
         <span className="text-lg font-bold text-white">PharmFlow</span>
       </div>
