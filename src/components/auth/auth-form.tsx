@@ -65,7 +65,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
               style={{ backgroundColor: "hsl(var(--navbar))" }}
             >
-              <BookOpen className="h-7 w-7 text-white" />
+              <PharmacyIcon className="h-7 w-7 text-white" strokeWidth={2} />
             </div>
             <h1 className="text-3xl font-bold" style={{ color: "hsl(var(--foreground))" }}>PharmFlow</h1>
             <p className="mt-1 text-muted-foreground">Study smarter, not harder</p>
