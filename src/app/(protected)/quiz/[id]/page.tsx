@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { QuizPlayer } from "@/components/quiz/quiz-player";
 import { Button } from "@/components/ui/button";
@@ -98,6 +98,24 @@ export default async function QuizPage({ params }: PageProps) {
     );
   }
 
+  const { data: rawAttempts } = await supabase
+    .from("quiz_attempts")
+    .select("answers")
+    .eq("quiz_id", id)
+    .eq("user_id", user!.id)
+    .not("completed_at", "is", null)
+    .order("completed_at", { ascending: false })
+    .limit(1);
+
+  const initialAnswers: Record<string, string> = {};
+  const latestAttempt = (rawAttempts ?? [])[0] ?? null;
+  if (latestAttempt?.answers && Array.isArray(latestAttempt.answers)) {
+    for (const a of latestAttempt.answers as { questionId: string; selectedAnswer: string }[]) {
+      if (a.selectedAnswer) initialAnswers[a.questionId] = a.selectedAnswer;
+    }
+  }
+  const hasInitialAnswers = Object.keys(initialAnswers).length > 0;
+
   if (quizWithQuestions.questions.length === 0) {
     return (
       <div className="mx-auto max-w-xl py-16 text-center">
@@ -119,19 +137,27 @@ export default async function QuizPage({ params }: PageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
-          <Link href="/library">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Library
-          </Link>
-        </Button>
+        <div className="flex items-center justify-between mb-2">
+          <Button asChild variant="ghost" size="sm" className="-ml-2">
+            <Link href="/library">
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              Library
+            </Link>
+          </Button>
+          <a href={`/quiz/${quiz.id}/print?mode=exam`} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" size="sm">
+              <Download className="mr-1.5 h-4 w-4" />
+              Download Exam
+            </Button>
+          </a>
+        </div>
         <h1 className="text-2xl font-bold">{quiz.title}</h1>
         <p className="text-sm text-muted-foreground">{quiz.source_filename}</p>
       </div>
 
-      <QuizPlayer quiz={quizWithQuestions} />
+      <QuizPlayer quiz={quizWithQuestions} initialAnswers={initialAnswers} initialSubmitted={hasInitialAnswers} />
     </div>
   );
 }

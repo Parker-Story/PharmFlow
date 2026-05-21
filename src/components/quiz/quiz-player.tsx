@@ -1,169 +1,214 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, XCircle, ChevronRight, Trophy } from "lucide-react";
+import { CheckCircle, XCircle, Trophy, Shuffle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import type { QuizWithQuestions, QuizAttemptAnswer } from "@/types/quiz";
+import { saveQuizAttempt } from "@/lib/actions/quiz";
+import type { QuizWithQuestions, QuizQuestion } from "@/types/quiz";
 
 interface QuizPlayerProps {
   quiz: QuizWithQuestions;
+  initialAnswers?: Record<string, string>;
+  initialSubmitted?: boolean;
 }
 
-type Phase = "question" | "answer" | "results";
-
-export function QuizPlayer({ quiz }: QuizPlayerProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [phase, setPhase] = useState<Phase>("question");
-  const [selected, setSelected] = useState<string | null>(null);
-  const [answers, setAnswers] = useState<QuizAttemptAnswer[]>([]);
-
-  const question = quiz.questions[currentIndex];
-  const isLast = currentIndex === quiz.questions.length - 1;
-  const score = answers.filter((a) => a.isCorrect).length;
-  const percent = Math.round((currentIndex / quiz.questions.length) * 100);
-
-  function handleSelect(option: string) {
-    if (phase !== "question") return;
-    setSelected(option);
-    setPhase("answer");
-
-    setAnswers((prev) => [
-      ...prev,
-      {
-        questionId: question.id,
-        selectedAnswer: option,
-        isCorrect: option === question.correctAnswer,
-      },
-    ]);
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+  return a;
+}
 
-  function handleNext() {
-    if (isLast) {
-      setPhase("results");
+export function QuizPlayer({ quiz, initialAnswers = {}, initialSubmitted = false }: QuizPlayerProps) {
+  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers);
+  const [submitted, setSubmitted] = useState(initialSubmitted);
+  const [isShuffled, setIsShuffled] = useState(false);
+  const [displayQuestions, setDisplayQuestions] = useState<QuizQuestion[]>(quiz.questions);
+
+  function handleToggleShuffle() {
+    if (isShuffled) {
+      setIsShuffled(false);
+      setDisplayQuestions(quiz.questions);
     } else {
-      setCurrentIndex((i) => i + 1);
-      setSelected(null);
-      setPhase("question");
+      setIsShuffled(true);
+      setDisplayQuestions(shuffleArray(quiz.questions));
     }
   }
 
+  async function handleSubmit() {
+    const score = displayQuestions.filter((q) => answers[q.id] === q.correctAnswer).length;
+    const answersArray = displayQuestions.map((q) => ({
+      questionId: q.id,
+      selectedAnswer: answers[q.id] ?? "",
+      isCorrect: answers[q.id] === q.correctAnswer,
+    }));
+
+    setSubmitted(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    saveQuizAttempt(quiz.id, score, displayQuestions.length, answersArray).catch(console.error);
+  }
+
   function handleRestart() {
-    setCurrentIndex(0);
-    setPhase("question");
-    setSelected(null);
-    setAnswers([]);
+    setAnswers({});
+    setSubmitted(false);
+    setDisplayQuestions(isShuffled ? shuffleArray(quiz.questions) : quiz.questions);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  if (phase === "results") {
-    const finalScore = answers.filter((a) => a.isCorrect).length;
-    const finalPercent = Math.round((finalScore / quiz.questions.length) * 100);
-
-    return (
-      <div className="flex flex-col items-center gap-6 py-8 text-center">
-        <Trophy className="h-16 w-16 text-yellow-400" />
-        <div>
-          <h2 className="text-3xl font-bold">{finalPercent}%</h2>
-          <p className="text-muted-foreground">
-            {finalScore} / {quiz.questions.length} correct
-          </p>
-        </div>
-
-        <div className="w-full max-w-xs">
-          <Progress value={finalPercent} className="h-3" />
-        </div>
-
-        <p className="text-lg font-medium">
-          {finalPercent >= 80
-            ? "Excellent work! 🎉"
-            : finalPercent >= 60
-            ? "Good effort — keep studying!"
-            : "Keep practicing, you'll get there!"}
-        </p>
-
-        <Button onClick={handleRestart} size="lg">
-          Try Again
-        </Button>
-      </div>
-    );
+  function handleSelect(questionId: string, option: string) {
+    if (submitted) return;
+    setAnswers((prev) => ({ ...prev, [questionId]: option }));
   }
 
-  const options = question.options ??
-    (question.questionType === "true_false" ? ["True", "False"] : []);
+  const score = displayQuestions.filter((q) => answers[q.id] === q.correctAnswer).length;
+  const percent = Math.round((score / displayQuestions.length) * 100);
 
   return (
-    <div className="space-y-6">
-      {/* Progress */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>
-            Question {currentIndex + 1} of {quiz.questions.length}
-          </span>
-          {phase === "answer" && (
-            <span className="font-medium">
-              {score} correct so far
-            </span>
-          )}
+    <div className="space-y-5">
+      {!submitted && (
+        <div className="flex justify-end">
+          <Button
+            variant={isShuffled ? "default" : "outline"}
+            size="sm"
+            onClick={handleToggleShuffle}
+          >
+            <Shuffle className="mr-2 h-4 w-4" />
+            {isShuffled ? "Shuffled" : "Shuffle"}
+          </Button>
         </div>
-        <Progress value={percent} className="h-2" />
-      </div>
+      )}
 
-      {/* Question */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-medium leading-relaxed">
-            {question.questionText}
-          </CardTitle>
-        </CardHeader>
+      {submitted && (
+        <div className="rounded-xl border bg-card p-6 text-center">
+          <Trophy className="mx-auto mb-3 h-10 w-10 text-yellow-400" />
+          <h2 className="text-3xl font-bold">{percent}%</h2>
+          <p className="text-muted-foreground">
+            {score} / {displayQuestions.length} correct
+          </p>
+          <p className="mt-2 text-sm font-medium">
+            {percent >= 80
+              ? "Excellent work!"
+              : percent >= 60
+              ? "Good effort — keep studying!"
+              : "Keep practicing, you'll get there!"}
+          </p>
+          <div className="mt-4 flex justify-center gap-2">
+            <Button onClick={handleRestart} size="sm" variant="outline">
+              Retake
+            </Button>
+            <a href={`/quiz/${quiz.id}/print?mode=answers`} target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Answer Key PDF
+              </Button>
+            </a>
+          </div>
+        </div>
+      )}
 
-        <CardContent className="space-y-3">
-          {options.map((option) => {
-            const isSelected = selected === option;
-            const isCorrect = option === question.correctAnswer;
-            const showResult = phase === "answer";
+      {displayQuestions.map((question, i) => {
+        const options =
+          question.options ??
+          (question.questionType === "true_false" ? ["True", "False"] : []);
+        const selected = answers[question.id];
+        const isCorrect = submitted && selected === question.correctAnswer;
+        const isUnanswered = submitted && !selected;
 
-            return (
-              <button
-                key={option}
-                onClick={() => handleSelect(option)}
-                disabled={phase === "answer"}
+        return (
+          <div key={question.id} className="rounded-xl border bg-card p-5">
+            <div className="mb-4 flex items-start gap-3">
+              <span
                 className={cn(
-                  "w-full rounded-lg border p-3 text-left text-sm transition-all",
-                  "hover:border-primary/50 hover:bg-primary/5",
-                  "disabled:cursor-default",
-                  showResult && isCorrect && "border-green-500 bg-green-50 text-green-800",
-                  showResult && isSelected && !isCorrect && "border-red-400 bg-red-50 text-red-800",
-                  !showResult && "border-border"
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                  !submitted && "bg-primary/10 text-primary",
+                  submitted && isCorrect && "bg-green-100 text-green-700",
+                  submitted && !isCorrect && "bg-red-100 text-red-700"
                 )}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span>{option}</span>
-                  {showResult && isCorrect && (
-                    <CheckCircle className="h-4 w-4 shrink-0 text-green-600" />
-                  )}
-                  {showResult && isSelected && !isCorrect && (
-                    <XCircle className="h-4 w-4 shrink-0 text-red-500" />
-                  )}
-                </div>
-              </button>
-            );
-          })}
-
-          {phase === "answer" && question.explanation && (
-            <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
-              <span className="font-medium">Explanation: </span>
-              {question.explanation}
+                {i + 1}
+              </span>
+              <p className="text-sm font-medium leading-relaxed">
+                {question.questionText}
+              </p>
             </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {phase === "answer" && (
-        <Button onClick={handleNext} className="w-full" size="lg">
-          {isLast ? "See Results" : "Next Question"}
-          <ChevronRight className="ml-1 h-4 w-4" />
+            <div className="space-y-2 pl-9">
+              {options.map((option) => {
+                const isSelected = selected === option;
+                const isCorrectOption = option === question.correctAnswer;
+
+                return (
+                  <button
+                    key={option}
+                    onClick={() => handleSelect(question.id, option)}
+                    disabled={submitted}
+                    className={cn(
+                      "w-full rounded-lg border p-3 text-left text-sm transition-all disabled:cursor-default",
+                      !submitted && !isSelected && "border-border hover:border-primary/50 hover:bg-primary/5",
+                      !submitted && isSelected && "border-primary bg-primary/5",
+                      submitted && isCorrectOption && "border-green-500 bg-green-50 text-green-800",
+                      submitted && isSelected && !isCorrectOption && "border-red-400 bg-red-50 text-red-800",
+                      submitted && !isSelected && !isCorrectOption && "border-border opacity-50"
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span>{option}</span>
+                      {submitted && isCorrectOption && (
+                        <CheckCircle className="h-4 w-4 shrink-0 text-green-600" />
+                      )}
+                      {submitted && isSelected && !isCorrectOption && (
+                        <XCircle className="h-4 w-4 shrink-0 text-red-500" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+
+              {submitted && (
+                <div
+                  className={cn(
+                    "mt-1 rounded-lg p-3 text-sm",
+                    isCorrect ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
+                  )}
+                >
+                  {isUnanswered && (
+                    <span className="font-medium">
+                      Not answered — correct answer: {question.correctAnswer}.{" "}
+                    </span>
+                  )}
+                  {!isUnanswered && !isCorrect && (
+                    <span className="font-medium">
+                      Correct answer: {question.correctAnswer}.{" "}
+                    </span>
+                  )}
+                  {question.explanation && (
+                    <>
+                      {(isUnanswered || !isCorrect) && " "}
+                      {question.explanation}
+                    </>
+                  )}
+                  {isCorrect && !question.explanation && (
+                    <span className="font-medium">Correct!</span>
+                  )}
+                  {isCorrect && question.explanation && question.explanation}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      {!submitted ? (
+        <Button onClick={handleSubmit} className="w-full" size="lg">
+          Check Answers
+        </Button>
+      ) : (
+        <Button onClick={handleRestart} variant="outline" className="w-full" size="lg">
+          Retake
         </Button>
       )}
     </div>

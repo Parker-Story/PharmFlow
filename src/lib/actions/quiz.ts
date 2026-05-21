@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { extractTextFromPdf, chunkText } from "@/lib/pdf/extract";
 import { generateQuestionsFromChunks } from "@/lib/ai/generate";
-import type { ProcessingResult, QuizQuestion } from "@/types/quiz";
+import type { ProcessingResult, QuizQuestion, QuizAttemptAnswer } from "@/types/quiz";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -112,6 +112,26 @@ export async function processUploadedPdf(
   }
 }
 
+export async function saveQuizAttempt(
+  quizId: string,
+  score: number,
+  totalQuestions: number,
+  answers: QuizAttemptAnswer[]
+): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase.from("quiz_attempts").insert({
+    quiz_id: quizId,
+    user_id: user.id,
+    score,
+    total_questions: totalQuestions,
+    answers,
+    completed_at: new Date().toISOString(),
+  });
+}
+
 export async function deleteQuiz(quizId: string): Promise<{ error?: string }> {
   const supabase = await createClient();
   const {
@@ -128,5 +148,6 @@ export async function deleteQuiz(quizId: string): Promise<{ error?: string }> {
   if (error) return { error: error.message };
 
   revalidatePath("/dashboard");
+  revalidatePath("/library", "layout");
   return {};
 }
