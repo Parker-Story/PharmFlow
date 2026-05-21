@@ -29,6 +29,23 @@ export default async function FolderPage({ params }: PageProps) {
   const subfolders = (rawSubfolders ?? []) as Folder[];
   const exams = (rawExams ?? []) as Quiz[];
 
+  const quizIds = exams.map((e) => e.id);
+  const { data: rawAttempts } = quizIds.length > 0
+    ? await supabase
+        .from("quiz_attempts")
+        .select("quiz_id, score, total_questions, completed_at")
+        .eq("user_id", user!.id)
+        .in("quiz_id", quizIds)
+        .order("completed_at", { ascending: false })
+    : { data: [] };
+
+  const latestScores = new Map<string, { score: number; total: number }>();
+  for (const a of (rawAttempts ?? []) as { quiz_id: string; score: number | null; total_questions: number }[]) {
+    if (!latestScores.has(a.quiz_id) && a.score !== null) {
+      latestScores.set(a.quiz_id, { score: a.score, total: a.total_questions });
+    }
+  }
+
   const parentHref = folder.parent_id ? `/library/${folder.parent_id}` : "/library";
 
   return (
@@ -66,7 +83,7 @@ export default async function FolderPage({ params }: PageProps) {
         ) : (
           <div className="space-y-2">
             {exams.map((exam) => (
-              <ExamRow key={exam.id} exam={exam} />
+              <ExamRow key={exam.id} exam={exam} lastScore={latestScores.get(exam.id)} />
             ))}
           </div>
         )}

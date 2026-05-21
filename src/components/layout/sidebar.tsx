@@ -21,7 +21,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="sticky top-0 h-screen w-60 shrink-0 flex flex-col z-30"
+      className="print:hidden sticky top-0 h-screen w-60 shrink-0 flex flex-col z-30"
       style={{ backgroundColor: "hsl(var(--navbar))" }}
     >
       {/* Brand */}
