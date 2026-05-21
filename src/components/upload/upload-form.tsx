@@ -55,7 +55,7 @@ export function UploadForm({ folders }: UploadFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [dragActive, setDragActive] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
@@ -68,33 +68,37 @@ export function UploadForm({ folders }: UploadFormProps) {
   const [folderId, setFolderId] = useState("");
   const [createNotecardSet, setCreateNotecardSet] = useState(false);
 
-  function handleFile(file: File) {
+  function addFiles(incoming: FileList | File[]) {
     setError(null);
-    if (file.type !== "application/pdf") {
-      setError("Please select a PDF file.");
-      return;
+    const toAdd: File[] = [];
+    for (const file of Array.from(incoming)) {
+      if (file.type !== "application/pdf") { setError(`${file.name} is not a PDF.`); continue; }
+      if (file.size > MAX_SIZE_BYTES) { setError(`${file.name} must be under ${MAX_SIZE_MB} MB.`); continue; }
+      toAdd.push(file);
     }
-    if (file.size > MAX_SIZE_BYTES) {
-      setError(`File must be under ${MAX_SIZE_MB} MB.`);
-      return;
-    }
-    setSelectedFile(file);
+    setSelectedFiles((prev) => {
+      const existing = new Set(prev.map((f) => f.name));
+      return [...prev, ...toAdd.filter((f) => !existing.has(f.name))];
+    });
+  }
+
+  function removeFile(name: string) {
+    setSelectedFiles((prev) => prev.filter((f) => f.name !== name));
   }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragActive(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+    addFiles(e.dataTransfer.files);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!selectedFile) return;
+    if (selectedFiles.length === 0) return;
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    formData.set("file", selectedFile);
+    selectedFiles.forEach((f) => formData.append("file", f));
     formData.set("question_count", String(questionCount));
     formData.set("difficulty", difficulty);
     formData.set("question_type", questionType);
@@ -261,50 +265,54 @@ export function UploadForm({ folders }: UploadFormProps) {
       {/* Drop zone */}
       <div
         className={cn(
-          "relative rounded-xl border-2 border-dashed p-8 text-center transition-colors",
+          "relative rounded-xl border-2 border-dashed p-6 text-center transition-colors",
           dragActive
             ? "border-primary bg-primary/5"
-            : selectedFile
+            : selectedFiles.length > 0
             ? "border-green-400 bg-green-50"
             : "border-muted-foreground/25 hover:border-primary/50"
         )}
         onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
         onDragLeave={() => setDragActive(false)}
         onDrop={handleDrop}
-        onClick={() => !selectedFile && inputRef.current?.click()}
+        onClick={() => inputRef.current?.click()}
       >
         <input
           ref={inputRef}
           type="file"
           name="file"
           accept="application/pdf"
+          multiple
           className="sr-only"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+          onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
         />
 
-        {selectedFile ? (
-          <div className="flex items-center justify-center gap-3">
-            <FileText className="h-8 w-8 text-green-600 shrink-0" />
-            <div className="text-left min-w-0">
-              <p className="font-medium truncate">{selectedFile.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {(selectedFile.size / 1024 / 1024).toFixed(1)} MB
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setError(null); }}
-              className="ml-auto text-muted-foreground hover:text-destructive"
-            >
-              <X className="h-5 w-5" />
-            </button>
+        {selectedFiles.length > 0 ? (
+          <div className="space-y-2">
+            {selectedFiles.map((file) => (
+              <div key={file.name} className="flex items-center gap-3 rounded-lg bg-white/70 px-3 py-2 text-left">
+                <FileText className="h-4 w-4 text-green-600 shrink-0" />
+                <span className="flex-1 text-sm font-medium truncate">{file.name}</span>
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {(file.size / 1024 / 1024).toFixed(1)} MB
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); removeFile(file.name); }}
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            <p className="pt-1 text-xs text-muted-foreground">Click or drop to add more PDFs</p>
           </div>
         ) : (
-          <div className="cursor-pointer">
+          <div className="cursor-pointer py-2">
             <Upload className="mx-auto h-10 w-10 text-muted-foreground/50" />
-            <p className="mt-3 font-medium">Drop your PDF here</p>
+            <p className="mt-3 font-medium">Drop your PDFs here</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              or click to browse — max {MAX_SIZE_MB} MB
+              or click to browse — multiple files supported, max {MAX_SIZE_MB} MB each
             </p>
           </div>
         )}
@@ -343,7 +351,7 @@ export function UploadForm({ folders }: UploadFormProps) {
       <Button
         type="submit"
         className="w-full"
-        disabled={!selectedFile || isPending}
+        disabled={selectedFiles.length === 0 || isPending}
         size="lg"
       >
         {isPending ? (

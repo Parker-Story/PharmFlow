@@ -208,6 +208,31 @@ export type Database = {
         };
         Relationships: [];
       };
+      summaries: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          source_filename: string;
+          content: string;
+          folder_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          source_filename: string;
+          content: string;
+          folder_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          folder_id?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -232,3 +257,4 @@ export type Question = Database["public"]["Tables"]["questions"]["Row"];
 export type QuizAttempt = Database["public"]["Tables"]["quiz_attempts"]["Row"];
 export type NotecardSet = Database["public"]["Tables"]["notecard_sets"]["Row"];
 export type Notecard = Database["public"]["Tables"]["notecards"]["Row"];
+export type Summary = Database["public"]["Tables"]["summaries"]["Row"];

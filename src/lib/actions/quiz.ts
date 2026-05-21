@@ -18,7 +18,7 @@ export async function processUploadedPdf(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
 
-  const file = formData.get("file") as File | null;
+  const files = (formData.getAll("file") as File[]).filter((f) => f && f.size > 0);
   const title = (formData.get("title") as string) || "Untitled Quiz";
   const questionCount = Math.min(50, Math.max(5, Number(formData.get("question_count")) || 20));
   const difficulty = (formData.get("difficulty") as "easy" | "medium" | "hard") || "medium";
@@ -27,12 +27,13 @@ export async function processUploadedPdf(
   const folderId = (formData.get("folder_id") as string) || null;
   const createNotecardSet = formData.get("create_notecard_set") === "true";
 
-  if (!file || file.type !== "application/pdf") {
-    return { success: false, error: "Please upload a valid PDF file." };
+  if (files.length === 0) return { success: false, error: "Please upload at least one PDF file." };
+  for (const file of files) {
+    if (file.type !== "application/pdf") return { success: false, error: `${file.name} is not a PDF.` };
+    if (file.size > MAX_FILE_SIZE) return { success: false, error: `${file.name} must be under 10 MB.` };
   }
-  if (file.size > MAX_FILE_SIZE) {
-    return { success: false, error: "File must be under 10 MB." };
-  }
+
+  const sourceFilename = files.length === 1 ? files[0].name : `${files.length} files`;
 
   const questionTypes =
     questionType === "multiple_choice" ? (["multiple_choice"] as const) :
@@ -42,9 +43,14 @@ export async function processUploadedPdf(
   let questions: QuizQuestion[] = [];
   let notecardCards: { front: string; back: string }[] = [];
   try {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const extracted = await extractTextFromPdf(buffer, file.name);
-    const chunks = chunkText(extracted.text);
+    const texts = await Promise.all(
+      files.map(async (file) => {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const extracted = await extractTextFromPdf(buffer, file.name);
+        return extracted.text;
+      })
+    );
+    const chunks = chunkText(texts.join("\n\n"));
 
     if (saveExam && createNotecardSet) {
       const [quizResult, flashResult] = await Promise.all([
@@ -93,7 +99,7 @@ export async function processUploadedPdf(
     .insert({
       user_id: user.id,
       title,
-      source_filename: file.name,
+      source_filename: sourceFilename,
       status: "processing",
       folder_id: folderId,
     })
@@ -131,7 +137,7 @@ export async function processUploadedPdf(
         .insert({
           user_id: user.id,
           title: notecardTitle,
-          source_filename: file.name,
+          source_filename: sourceFilename,
           status: "processing",
           folder_id: folderId,
         })

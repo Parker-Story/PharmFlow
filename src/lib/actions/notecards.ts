@@ -14,28 +14,35 @@ export async function processNotecardPdf(formData: FormData): Promise<NotecardPr
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Unauthorized" };
 
-  const file = formData.get("file") as File | null;
+  const files = (formData.getAll("file") as File[]).filter((f) => f && f.size > 0);
   const title = (formData.get("title") as string) || "Untitled Notecard Set";
   const cardCount = Math.min(60, Math.max(10, Number(formData.get("card_count")) || 20));
   const folderId = (formData.get("folder_id") as string) || null;
   const createExam = formData.get("create_exam") === "true";
 
-  if (!file || file.type !== "application/pdf") {
-    return { success: false, error: "Please upload a valid PDF file." };
-  }
-  if (file.size > MAX_FILE_SIZE) {
-    return { success: false, error: "File must be under 10 MB." };
+  if (files.length === 0) return { success: false, error: "Please upload at least one PDF file." };
+  for (const file of files) {
+    if (file.type !== "application/pdf") return { success: false, error: `${file.name} is not a PDF.` };
+    if (file.size > MAX_FILE_SIZE) return { success: false, error: `${file.name} must be under 10 MB.` };
   }
 
-  let buffer: Buffer;
+  const sourceFilename = files.length === 1 ? files[0].name : `${files.length} files`;
+
+  let combinedText: string;
   try {
-    buffer = Buffer.from(await file.arrayBuffer());
+    const texts = await Promise.all(
+      files.map(async (file) => {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const extracted = await extractTextFromPdf(buffer, file.name);
+        return extracted.text;
+      })
+    );
+    combinedText = texts.join("\n\n");
   } catch {
     return { success: false, error: "Could not read file." };
   }
 
-  const extracted = await extractTextFromPdf(buffer, file.name);
-  const chunks = chunkText(extracted.text);
+  const chunks = chunkText(combinedText);
 
   let cards: { front: string; back: string }[] = [];
   try {
@@ -56,7 +63,7 @@ export async function processNotecardPdf(formData: FormData): Promise<NotecardPr
         .insert({
           user_id: user.id,
           title: examTitle,
-          source_filename: file.name,
+          source_filename: sourceFilename,
           status: "processing",
           folder_id: folderId,
         })
@@ -97,7 +104,7 @@ export async function processNotecardPdf(formData: FormData): Promise<NotecardPr
     .insert({
       user_id: user.id,
       title,
-      source_filename: file.name,
+      source_filename: sourceFilename,
       status: "processing",
       folder_id: folderId,
     })

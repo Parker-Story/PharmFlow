@@ -99,6 +99,32 @@ ${text}`;
   return { questions };
 }
 
+export async function generateSummaryFromChunks(
+  chunks: TextChunk[]
+): Promise<{ summary: string }> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("GROQ_API_KEY is not set.");
+
+  const groq = new Groq({ apiKey });
+  const text = chunks.map((c) => c.text).join("\n\n").slice(0, MAX_TEXT_LENGTH);
+
+  const prompt = `You are a pharmacy professor. Read the following lecture notes and write a concise summary of the key points in exactly 5 sentences. Each sentence should cover a distinct important concept. Be specific — include drug names, mechanisms, and clinical points where relevant.
+
+Return ONLY the 5 sentences as a plain paragraph — no bullet points, no headers, no intro phrase like "Here is a summary."
+
+Lecture content:
+${text}`;
+
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.3,
+  });
+
+  const summary = (completion.choices[0].message.content ?? "").trim();
+  return { summary };
+}
+
 export async function generateFlashcardsFromChunks(
   chunks: TextChunk[],
   options: { cardCount: number }

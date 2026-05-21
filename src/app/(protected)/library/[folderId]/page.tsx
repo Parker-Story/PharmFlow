@@ -6,8 +6,9 @@ import { NewFolderForm } from "@/components/library/new-folder-form";
 import { FolderCard } from "@/components/library/folder-card";
 import { ExamRow } from "@/components/library/exam-row";
 import { NotecardSetRow } from "@/components/library/notecard-set-row";
+import { SummaryRow } from "@/components/library/summary-row";
 import { Button } from "@/components/ui/button";
-import type { Quiz, Folder, NotecardSet } from "@/types/database";
+import type { Quiz, Folder, NotecardSet, Summary } from "@/types/database";
 
 interface PageProps {
   params: Promise<{ folderId: string }>;
@@ -18,11 +19,12 @@ export default async function FolderPage({ params }: PageProps) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [{ data: rawFolder }, { data: rawSubfolders }, { data: rawExams }, { data: rawNotecardSets }] = await Promise.all([
+  const [{ data: rawFolder }, { data: rawSubfolders }, { data: rawExams }, { data: rawNotecardSets }, { data: rawSummaries }] = await Promise.all([
     supabase.from("folders").select("*").eq("id", folderId).eq("user_id", user!.id).single(),
     supabase.from("folders").select("*").eq("user_id", user!.id).eq("parent_id", folderId).order("created_at"),
     supabase.from("quizzes").select("*").eq("folder_id", folderId).eq("user_id", user!.id).order("created_at", { ascending: false }),
     supabase.from("notecard_sets").select("*").eq("folder_id", folderId).eq("user_id", user!.id).order("created_at", { ascending: false }),
+    supabase.from("summaries").select("*").eq("folder_id", folderId).eq("user_id", user!.id).order("created_at", { ascending: false }),
   ]);
 
   if (!rawFolder) notFound();
@@ -31,6 +33,7 @@ export default async function FolderPage({ params }: PageProps) {
   const subfolders = (rawSubfolders ?? []) as Folder[];
   const exams = (rawExams ?? []) as Quiz[];
   const notecardSets = (rawNotecardSets ?? []) as NotecardSet[];
+  const summaries = (rawSummaries ?? []) as Summary[];
 
   const quizIds = exams.map((e) => e.id);
   const { data: rawAttempts } = quizIds.length > 0
@@ -99,7 +102,18 @@ export default async function FolderPage({ params }: PageProps) {
         </section>
       )}
 
-      {exams.length === 0 && notecardSets.length === 0 && subfolders.length === 0 && (
+      {summaries.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Summaries</h2>
+          <div className="space-y-2">
+            {summaries.map((s) => (
+              <SummaryRow key={s.id} summary={s} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {exams.length === 0 && notecardSets.length === 0 && summaries.length === 0 && subfolders.length === 0 && (
         <p className="text-sm text-muted-foreground py-8 text-center">
           No files in this folder yet.
         </p>
