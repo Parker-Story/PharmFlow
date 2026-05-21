@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, LayoutDashboard, Settings, LogOut } from "lucide-react";
+import { BookOpen, LayoutDashboard, Settings, LogOut, PawPrint } from "lucide-react";
 import { PharmacyIcon } from "@/components/ui/pharmacy-icon";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/lib/actions/auth";
@@ -10,6 +10,7 @@ import { signOut } from "@/lib/actions/auth";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/library", label: "Library", icon: BookOpen },
+  { href: "/break", label: "Need a Break?", icon: PawPrint },
 ];
 
 export function Sidebar() {
