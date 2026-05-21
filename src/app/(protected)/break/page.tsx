@@ -5,7 +5,7 @@ export const metadata = { title: "Take a Break — PharmFlow" };
 
 export default function BreakPage() {
   return (
-    <div className="mx-auto max-w-lg py-6">
+    <div className="mx-auto max-w-4xl py-6">
       <div className="mb-8 text-center">
         <Heart className="mx-auto mb-2 h-6 w-6 text-rose-400" />
         <h1 className="text-2xl font-bold">Need a Break?</h1>
