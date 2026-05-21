@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, Lock } from "lucide-react";
+import { FileText, StickyNote, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Dashboard — PharmFlow" };
@@ -12,7 +12,14 @@ const tools = [
     href: "/upload",
     available: true,
   },
-  ...Array.from({ length: 8 }, () => ({
+  {
+    title: "Notecard Generator",
+    description: "Upload a lecture PDF and generate flashcards to study",
+    icon: StickyNote,
+    href: "/notecards/create",
+    available: true,
+  },
+  ...Array.from({ length: 7 }, () => ({
     title: "Coming Soon",
     description: "A new study tool is on the way",
     icon: Lock,

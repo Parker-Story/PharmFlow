@@ -5,8 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { NewFolderForm } from "@/components/library/new-folder-form";
 import { FolderCard } from "@/components/library/folder-card";
 import { ExamRow } from "@/components/library/exam-row";
+import { NotecardSetRow } from "@/components/library/notecard-set-row";
 import { Button } from "@/components/ui/button";
-import type { Quiz, Folder } from "@/types/database";
+import type { Quiz, Folder, NotecardSet } from "@/types/database";
 
 interface PageProps {
   params: Promise<{ folderId: string }>;
@@ -17,10 +18,11 @@ export default async function FolderPage({ params }: PageProps) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [{ data: rawFolder }, { data: rawSubfolders }, { data: rawExams }] = await Promise.all([
+  const [{ data: rawFolder }, { data: rawSubfolders }, { data: rawExams }, { data: rawNotecardSets }] = await Promise.all([
     supabase.from("folders").select("*").eq("id", folderId).eq("user_id", user!.id).single(),
     supabase.from("folders").select("*").eq("user_id", user!.id).eq("parent_id", folderId).order("created_at"),
     supabase.from("quizzes").select("*").eq("folder_id", folderId).eq("user_id", user!.id).order("created_at", { ascending: false }),
+    supabase.from("notecard_sets").select("*").eq("folder_id", folderId).eq("user_id", user!.id).order("created_at", { ascending: false }),
   ]);
 
   if (!rawFolder) notFound();
@@ -28,6 +30,7 @@ export default async function FolderPage({ params }: PageProps) {
   const folder = rawFolder as Folder;
   const subfolders = (rawSubfolders ?? []) as Folder[];
   const exams = (rawExams ?? []) as Quiz[];
+  const notecardSets = (rawNotecardSets ?? []) as NotecardSet[];
 
   const quizIds = exams.map((e) => e.id);
   const { data: rawAttempts } = quizIds.length > 0
@@ -74,20 +77,33 @@ export default async function FolderPage({ params }: PageProps) {
         </section>
       )}
 
-      <section className="space-y-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Files</h2>
-        {exams.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-8 text-center">
-            No files in this folder yet.
-          </p>
-        ) : (
+      {exams.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Practice Exams</h2>
           <div className="space-y-2">
             {exams.map((exam) => (
               <ExamRow key={exam.id} exam={exam} lastScore={latestScores.get(exam.id)} />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
+
+      {notecardSets.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Notecard Sets</h2>
+          <div className="space-y-2">
+            {notecardSets.map((set) => (
+              <NotecardSetRow key={set.id} set={set} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {exams.length === 0 && notecardSets.length === 0 && subfolders.length === 0 && (
+        <p className="text-sm text-muted-foreground py-8 text-center">
+          No files in this folder yet.
+        </p>
+      )}
     </div>
   );
 }

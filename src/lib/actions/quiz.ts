@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { extractTextFromPdf, chunkText } from "@/lib/pdf/extract";
-import { generateQuestionsFromChunks } from "@/lib/ai/generate";
+import { generateQuestionsFromChunks, generateFlashcardsFromChunks } from "@/lib/ai/generate";
+import { formatTitleDate } from "@/lib/utils/date";
 import type { ProcessingResult, QuizQuestion, QuizAttemptAnswer } from "@/types/quiz";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -24,6 +25,7 @@ export async function processUploadedPdf(
   const questionType = (formData.get("question_type") as "multiple_choice" | "true_false" | "mix") || "mix";
   const saveExam = formData.get("save_exam") !== "false";
   const folderId = (formData.get("folder_id") as string) || null;
+  const createNotecardSet = formData.get("create_notecard_set") === "true";
 
   if (!file || file.type !== "application/pdf") {
     return { success: false, error: "Please upload a valid PDF file." };
@@ -38,24 +40,43 @@ export async function processUploadedPdf(
     (["multiple_choice", "true_false"] as const);
 
   let questions: QuizQuestion[] = [];
+  let notecardCards: { front: string; back: string }[] = [];
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     const extracted = await extractTextFromPdf(buffer, file.name);
     const chunks = chunkText(extracted.text);
-    const result = await generateQuestionsFromChunks(chunks, {
-      questionCount,
-      questionTypes: [...questionTypes],
-      difficulty,
-    });
-    questions = result.questions.map((q, i) => ({
-      id: `q-${i}`,
-      questionText: q.questionText,
-      questionType: q.questionType,
-      options: q.options,
-      correctAnswer: q.correctAnswer,
-      explanation: q.explanation,
-      orderIndex: i,
-    }));
+
+    if (saveExam && createNotecardSet) {
+      const [quizResult, flashResult] = await Promise.all([
+        generateQuestionsFromChunks(chunks, { questionCount, questionTypes: [...questionTypes], difficulty }),
+        generateFlashcardsFromChunks(chunks, { cardCount: 20 }),
+      ]);
+      questions = quizResult.questions.map((q, i) => ({
+        id: `q-${i}`,
+        questionText: q.questionText,
+        questionType: q.questionType,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+        orderIndex: i,
+      }));
+      notecardCards = flashResult.cards;
+    } else {
+      const result = await generateQuestionsFromChunks(chunks, {
+        questionCount,
+        questionTypes: [...questionTypes],
+        difficulty,
+      });
+      questions = result.questions.map((q, i) => ({
+        id: `q-${i}`,
+        questionText: q.questionText,
+        questionType: q.questionType,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+        orderIndex: i,
+      }));
+    }
   } catch (err) {
     console.error("PDF processing error:", err);
     return { success: false, error: "Processing failed. Please try again." };
@@ -103,6 +124,37 @@ export async function processUploadedPdf(
       .update({ status: "ready", question_count: questions.length })
       .eq("id", quiz.id);
 
+    if (createNotecardSet && notecardCards.length > 0) {
+      const notecardTitle = `Notecard Set — ${formatTitleDate(new Date())}`;
+      const { data: set } = await supabase
+        .from("notecard_sets")
+        .insert({
+          user_id: user.id,
+          title: notecardTitle,
+          source_filename: file.name,
+          status: "processing",
+          folder_id: folderId,
+        })
+        .select()
+        .single();
+
+      if (set) {
+        await supabase.from("notecards").insert(
+          notecardCards.map((c, i) => ({
+            set_id: set.id,
+            front: c.front,
+            back: c.back,
+            order_index: i,
+          }))
+        );
+        await supabase
+          .from("notecard_sets")
+          .update({ status: "ready", card_count: notecardCards.length })
+          .eq("id", set.id);
+      }
+    }
+
+    revalidatePath("/library", "layout");
     revalidatePath("/dashboard");
     return { success: true, quizId: quiz.id };
   } catch (err) {

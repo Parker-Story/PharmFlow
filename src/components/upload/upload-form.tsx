@@ -66,6 +66,7 @@ export function UploadForm({ folders }: UploadFormProps) {
   const [questionType, setQuestionType] = useState<QuestionType>("mix");
   const [saveExam, setSaveExam] = useState(true);
   const [folderId, setFolderId] = useState("");
+  const [createNotecardSet, setCreateNotecardSet] = useState(false);
 
   function handleFile(file: File) {
     setError(null);
@@ -99,6 +100,7 @@ export function UploadForm({ folders }: UploadFormProps) {
     formData.set("question_type", questionType);
     formData.set("save_exam", saveExam ? "true" : "false");
     if (saveExam && folderId) formData.set("folder_id", folderId);
+    if (saveExam) formData.set("create_notecard_set", createNotecardSet ? "true" : "false");
 
     const title = (formData.get("title") as string) || "Practice Exam";
 
@@ -228,6 +230,30 @@ export function UploadForm({ folders }: UploadFormProps) {
                 <option key={f.id} value={f.id}>{f.name}</option>
               ))}
             </select>
+          </div>
+        )}
+
+        {saveExam && (
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Also create a Notecard Set?</p>
+              <p className="text-xs text-muted-foreground">Auto-named, 20 cards from the same PDF</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCreateNotecardSet((v) => !v)}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                createNotecardSet ? "bg-primary" : "bg-muted-foreground/30"
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block h-4 w-4 rounded-full bg-white shadow transition-transform",
+                  createNotecardSet ? "translate-x-6" : "translate-x-1"
+                )}
+              />
+            </button>
           </div>
         )}
       </div>
