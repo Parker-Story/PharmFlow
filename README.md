@@ -2,7 +2,7 @@
 
 **Study tools built for pharmacy students.**
 
-🔗 [pharmflow.app](https://pharmflow.app) <!-- update with your live URL -->
+🔗 [PharmFlow](https://pharmflow-ldd.vercel.app/)
 
 ---
 
