@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileQuestion, StickyNote, BookText, Pill, Lock } from "lucide-react";
+import { FileQuestion, StickyNote, BookText, Pill, List, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Dashboard — PharmFlow" };
@@ -33,7 +33,14 @@ const tools = [
     href: "/drug-lookup",
     available: true,
   },
-  ...Array.from({ length: 5 }, () => ({
+  {
+    title: "Top 200 Drugs",
+    description: "Select drugs from the top 200 list and drill with flashcards",
+    icon: List,
+    href: "/top200",
+    available: true,
+  },
+  ...Array.from({ length: 4 }, () => ({
     title: "Coming Soon",
     description: "A new study tool is on the way",
     icon: Lock,

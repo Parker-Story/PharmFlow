@@ -56,7 +56,7 @@ export function DrugSearchBar({ initialQuery = "" }: DrugSearchBarProps) {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 150)}
-          placeholder="Search by drug name (e.g. metformin, lisinopril)..."
+          placeholder="Search by drug name (e.g. lisinopril, amoxicillin)..."
           className="w-full rounded-xl border bg-background px-4 py-3 pl-10 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
       </div>
@@ -73,10 +73,9 @@ export function DrugSearchBar({ initialQuery = "" }: DrugSearchBarProps) {
             <li key={drug.rxcui}>
               <button
                 onMouseDown={() => handleSelect(drug)}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted flex items-center justify-between gap-2"
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted"
               >
                 <span className="font-medium">{drug.name}</span>
-                <span className="text-xs text-muted-foreground shrink-0">{ttyLabel(drug.tty)}</span>
               </button>
             </li>
           ))}
@@ -90,11 +89,4 @@ export function DrugSearchBar({ initialQuery = "" }: DrugSearchBarProps) {
       )}
     </div>
   );
-}
-
-function ttyLabel(tty: string) {
-  if (tty === "IN") return "Generic";
-  if (tty === "BN") return "Brand";
-  if (tty === "MIN") return "Combo";
-  return tty;
 }
