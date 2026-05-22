@@ -1,11 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
-import { UploadForm } from "@/components/upload/upload-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { UnifiedUploadForm } from "@/components/upload/unified-upload-form";
 import type { Folder } from "@/types/database";
 
-export const metadata = { title: "Practice Exam Generator — PharmFlow" };
+export const metadata = { title: "Generate Study Materials — PharmFlow" };
 
-export default async function UploadPage() {
+interface PageProps {
+  searchParams: Promise<{ generate?: string }>;
+}
+
+export default async function UploadPage({ searchParams }: PageProps) {
+  const { generate } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -19,25 +23,14 @@ export default async function UploadPage() {
   const folders = (rawFolders ?? []) as Pick<Folder, "id" | "name">[];
 
   return (
-    <div className="mx-auto max-w-xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Practice Exam Generator</h1>
+    <div className="mx-auto max-w-xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Generate Study Materials</h1>
         <p className="text-muted-foreground">
-          Upload a lecture PDF and configure your exam — we extract the text and generate questions. The PDF is never stored.
+          Upload one or more lecture PDFs and choose what to generate. The PDF is never stored.
         </p>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>New Exam</CardTitle>
-          <CardDescription>
-            Configure your options, then drop in your PDF
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <UploadForm folders={folders} />
-        </CardContent>
-      </Card>
+      <UnifiedUploadForm folders={folders} initialGenerate={generate} />
     </div>
   );
 }

@@ -8,6 +8,7 @@ export type Json =
 
 export type QuizStatus = "processing" | "ready" | "failed";
 export type QuestionType = "multiple_choice" | "true_false" | "short_answer";
+export type NotecardStatus = "processing" | "ready" | "failed";
 
 export type Database = {
   public: {
@@ -123,6 +124,62 @@ export type Database = {
         };
         Relationships: [];
       };
+      notecard_sets: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          source_filename: string;
+          card_count: number;
+          status: NotecardStatus;
+          folder_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          source_filename: string;
+          card_count?: number;
+          status?: NotecardStatus;
+          folder_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          title?: string;
+          card_count?: number;
+          status?: NotecardStatus;
+          folder_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      notecards: {
+        Row: {
+          id: string;
+          set_id: string;
+          front: string;
+          back: string;
+          order_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          set_id: string;
+          front: string;
+          back: string;
+          order_index: number;
+          created_at?: string;
+        };
+        Update: {
+          front?: string;
+          back?: string;
+          order_index?: number;
+        };
+        Relationships: [];
+      };
       quiz_attempts: {
         Row: {
           id: string;
@@ -151,6 +208,31 @@ export type Database = {
         };
         Relationships: [];
       };
+      summaries: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          source_filename: string;
+          content: string;
+          folder_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          source_filename: string;
+          content: string;
+          folder_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          folder_id?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -173,3 +255,6 @@ export type Folder = Database["public"]["Tables"]["folders"]["Row"];
 export type Quiz = Database["public"]["Tables"]["quizzes"]["Row"];
 export type Question = Database["public"]["Tables"]["questions"]["Row"];
 export type QuizAttempt = Database["public"]["Tables"]["quiz_attempts"]["Row"];
+export type NotecardSet = Database["public"]["Tables"]["notecard_sets"]["Row"];
+export type Notecard = Database["public"]["Tables"]["notecards"]["Row"];
+export type Summary = Database["public"]["Tables"]["summaries"]["Row"];

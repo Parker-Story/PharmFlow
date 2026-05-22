@@ -1,18 +1,39 @@
 import Link from "next/link";
-import { FileText, Lock } from "lucide-react";
+import { FileQuestion, StickyNote, BookText, Pill, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Dashboard — PharmFlow" };
 
 const tools = [
   {
-    title: "Practice Exam Generator",
-    description: "Upload a lecture PDF and generate a practice exam",
-    icon: FileText,
-    href: "/upload",
+    title: "Practice Exam",
+    description: "Generate multiple choice and true/false questions from your lecture notes",
+    icon: FileQuestion,
+    href: "/upload?generate=exam",
     available: true,
   },
-  ...Array.from({ length: 8 }, () => ({
+  {
+    title: "Notecards",
+    description: "Generate flashcards and study with a Know It / Don't Know flow",
+    icon: StickyNote,
+    href: "/upload?generate=notecards",
+    available: true,
+  },
+  {
+    title: "Summary",
+    description: "Get a concise 5-sentence overview of the key concepts from your notes",
+    icon: BookText,
+    href: "/upload?generate=summary",
+    available: true,
+  },
+  {
+    title: "Drug Lookup",
+    description: "Search FDA-approved prescribing information for any drug",
+    icon: Pill,
+    href: "/drug-lookup",
+    available: true,
+  },
+  ...Array.from({ length: 5 }, () => ({
     title: "Coming Soon",
     description: "A new study tool is on the way",
     icon: Lock,

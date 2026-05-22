@@ -48,27 +48,22 @@ export function DogSlideshow() {
     setPhase("out");
   }
 
-  useEffect(() => {
+  function handleAnimationEnd() {
     if (phase === "out") {
-      const t = setTimeout(() => {
-        if (pendingIndex !== null) setIndex(pendingIndex);
-        setPhase("in");
-      }, 220);
-      return () => clearTimeout(t);
+      if (pendingIndex !== null) setIndex(pendingIndex);
+      setPhase("in");
+    } else if (phase === "in") {
+      setPhase("idle");
     }
-    if (phase === "in") {
-      const t = setTimeout(() => setPhase("idle"), 220);
-      return () => clearTimeout(t);
-    }
-  }, [phase, pendingIndex]);
+  }
 
   const animClass = phase === "out" ? "flip-out" : phase === "in" ? "flip-in" : "";
 
   return (
     <div className="flex flex-col items-center gap-6">
       {/* Photo */}
-      <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border">
-        <div className={`relative w-full h-full ${animClass}`}>
+      <div className="relative w-full h-[68vh] rounded-2xl overflow-hidden shadow-xl border">
+        <div className={`relative w-full h-full ${animClass}`} onAnimationEnd={handleAnimationEnd}>
           <Image
             src={images[index]}
             alt="Good dog"
