@@ -233,6 +233,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_achievements: {
+        Row: {
+          id: string;
+          user_id: string;
+          achievement_id: string;
+          unlocked_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          achievement_id: string;
+          unlocked_at?: string;
+        };
+        Update: {
+          unlocked_at?: string;
+        };
+        Relationships: [];
+      };
+      user_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          event_type: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          event_type: string;
+          created_at?: string;
+        };
+        Update: {
+          event_type?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -258,3 +294,5 @@ export type QuizAttempt = Database["public"]["Tables"]["quiz_attempts"]["Row"];
 export type NotecardSet = Database["public"]["Tables"]["notecard_sets"]["Row"];
 export type Notecard = Database["public"]["Tables"]["notecards"]["Row"];
 export type Summary = Database["public"]["Tables"]["summaries"]["Row"];
+export type UserAchievement = Database["public"]["Tables"]["user_achievements"]["Row"];
+export type UserEvent = Database["public"]["Tables"]["user_events"]["Row"];
