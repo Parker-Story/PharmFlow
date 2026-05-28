@@ -60,11 +60,19 @@ Return ONLY a valid JSON array — no markdown, no code fences, no explanation o
 Lecture content:
 ${text}`;
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-  });
+  let completion;
+  try {
+    completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+    });
+  } catch (err: unknown) {
+    if ((err as { status?: number }).status === 429) {
+      throw new Error("AI quota reached for today. Try again later.");
+    }
+    throw err;
+  }
   const raw = (completion.choices[0].message.content ?? "").trim();
 
   // Strip markdown code fences if the model wraps the output anyway
@@ -115,11 +123,19 @@ Return ONLY the 5 sentences as a plain paragraph — no bullet points, no header
 Lecture content:
 ${text}`;
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.3,
-  });
+  let completion;
+  try {
+    completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.3,
+    });
+  } catch (err: unknown) {
+    if ((err as { status?: number }).status === 429) {
+      throw new Error("AI quota reached for today. Try again later.");
+    }
+    throw err;
+  }
 
   const summary = (completion.choices[0].message.content ?? "").trim();
   return { summary };
@@ -145,11 +161,19 @@ Return ONLY a valid JSON array — no markdown, no code fences, no explanation o
 Lecture content:
 ${text}`;
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-  });
+  let completion;
+  try {
+    completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+    });
+  } catch (err: unknown) {
+    if ((err as { status?: number }).status === 429) {
+      throw new Error("AI quota reached for today. Try again later.");
+    }
+    throw err;
+  }
   const raw = (completion.choices[0].message.content ?? "").trim();
 
   const json = raw.startsWith("```")

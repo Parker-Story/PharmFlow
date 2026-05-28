@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
+import { AchievementNotifier } from "@/components/achievement-notifier";
 
 export default async function ProtectedLayout({
   children,
@@ -22,6 +23,7 @@ export default async function ProtectedLayout({
       <main className="flex-1 px-8 py-8 min-h-screen overflow-x-hidden">
         {children}
       </main>
+      <AchievementNotifier />
     </div>
   );
 }

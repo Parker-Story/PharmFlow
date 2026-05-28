@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DrugSearchBar } from "@/components/drug-lookup/drug-search-bar";
 import { DrugDetailSection } from "@/components/drug-lookup/drug-detail-section";
+import { EventLogger } from "@/components/event-logger";
 import { getDrugDetail } from "@/lib/actions/drugs";
 
 interface PageProps {
@@ -28,6 +29,7 @@ export default async function DrugDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <EventLogger event="drug_lookup" />
       <div>
         <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
           <Link href="/drug-lookup">

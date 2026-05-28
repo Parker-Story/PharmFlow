@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { DogSlideshow } from "@/components/break/dog-slideshow";
+import { EventLogger } from "@/components/event-logger";
 
 export const metadata = { title: "Take a Break — PharmFlow" };
 
@@ -13,6 +14,7 @@ export default function BreakPage() {
           You&apos;re doing great. These cuties think so too!
         </p>
       </div>
+      <EventLogger event="break_visit" />
       <DogSlideshow />
     </div>
   );
