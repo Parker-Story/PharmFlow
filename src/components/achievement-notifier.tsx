@@ -1,19 +1,26 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
+import { syncAchievements } from "@/lib/actions/achievements";
 import { ACHIEVEMENTS } from "@/data/achievements";
 
-export function AchievementNotifier({ newlyEarned }: { newlyEarned: string[] }) {
+export function AchievementNotifier() {
+  const pathname = usePathname();
+
   useEffect(() => {
-    for (const id of newlyEarned) {
-      const def = ACHIEVEMENTS.find((a) => a.id === id);
-      if (!def) continue;
-      toast(`${def.icon} Achievement Unlocked!`, {
-        description: `${def.title} — ${def.description}`,
-        duration: 5000,
-      });
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    syncAchievements().then(({ newlyEarned }) => {
+      for (const id of newlyEarned) {
+        const def = ACHIEVEMENTS.find((a) => a.id === id);
+        if (!def) continue;
+        toast(`${def.icon} Achievement Unlocked!`, {
+          description: `${def.title} — ${def.description}`,
+          duration: 5000,
+        });
+      }
+    });
+  }, [pathname]);
+
   return null;
 }
