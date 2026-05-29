@@ -312,7 +312,7 @@ export function UploadForm({ folders }: UploadFormProps) {
             <Upload className="mx-auto h-10 w-10 text-muted-foreground/50" />
             <p className="mt-3 font-medium">Drop your PDFs here</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              or click to browse — multiple files supported, max {MAX_SIZE_MB} MB each
+              or click to browse. Multiple files supported, max {MAX_SIZE_MB} MB each
             </p>
           </div>
         )}
@@ -332,7 +332,7 @@ export function UploadForm({ folders }: UploadFormProps) {
               </div>
               <Progress value={progress} className="h-2" />
               <p className="text-xs text-muted-foreground">
-                Extracting text and generating questions — this takes ~15–30 seconds
+                Extracting text and generating questions. This takes about 15-30 seconds.
               </p>
             </div>
           </CardContent>

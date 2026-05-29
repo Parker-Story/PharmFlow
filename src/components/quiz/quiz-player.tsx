@@ -93,7 +93,7 @@ export function QuizPlayer({ quiz, initialAnswers = {}, initialSubmitted = false
             {percent >= 80
               ? "Excellent work!"
               : percent >= 60
-              ? "Good effort — keep studying!"
+              ? "Good effort. Keep studying!"
               : "Keep practicing, you'll get there!"}
           </p>
           <div className="mt-4 flex justify-center gap-2">
@@ -177,7 +177,7 @@ export function QuizPlayer({ quiz, initialAnswers = {}, initialSubmitted = false
                 >
                   {isUnanswered && (
                     <span className="font-medium">
-                      Not answered — correct answer: {question.correctAnswer}.{" "}
+                      Not answered. Correct answer: {question.correctAnswer}.{" "}
                     </span>
                   )}
                   {!isUnanswered && !isCorrect && (

@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageProps) {
     .eq("id", id)
     .single();
   const row = data as { title: string } | null;
-  return { title: row ? `${row.title} — PharmFlow` : "Quiz — PharmFlow" };
+  return { title: row ? `${row.title} | PharmFlow` : "Quiz | PharmFlow" };
 }
 
 export default async function QuizPage({ params }: PageProps) {

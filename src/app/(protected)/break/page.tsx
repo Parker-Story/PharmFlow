@@ -2,7 +2,7 @@ import { Heart } from "lucide-react";
 import { DogSlideshow } from "@/components/break/dog-slideshow";
 import { EventLogger } from "@/components/event-logger";
 
-export const metadata = { title: "Take a Break — PharmFlow" };
+export const metadata = { title: "Take a Break | PharmFlow" };
 
 export default function BreakPage() {
   return (

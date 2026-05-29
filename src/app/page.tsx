@@ -108,7 +108,7 @@ export default async function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-border/50 py-6 text-center text-sm text-muted-foreground">
-        PharmFlow — Built for pharmacy students
+        PharmFlow, built for pharmacy students
       </footer>
     </div>
   );

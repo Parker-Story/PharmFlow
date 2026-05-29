@@ -57,7 +57,7 @@ export async function processNotecardPdf(formData: FormData): Promise<NotecardPr
       ]);
       cards = flashResult.cards;
 
-      const examTitle = `Practice Exam — ${formatTitleDate(new Date())}`;
+      const examTitle = `Practice Exam: ${formatTitleDate(new Date())}`;
       const { data: quiz } = await supabase
         .from("quizzes")
         .insert({

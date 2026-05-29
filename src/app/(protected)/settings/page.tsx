@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { SettingsForms } from "@/components/settings/settings-forms";
 
-export const metadata = { title: "Settings — PharmFlow" };
+export const metadata = { title: "Settings | PharmFlow" };
 
 export default async function SettingsPage() {
   const supabase = await createClient();
