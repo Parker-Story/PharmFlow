@@ -8,6 +8,7 @@ import {
   generateFlashcardsFromChunks,
   generateSummaryFromChunks,
 } from "@/lib/ai/generate";
+import { checkDbLimit, DAILY_LIMITS } from "@/lib/actions/limits";
 import type { QuizQuestion } from "@/types/quiz";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -43,6 +44,14 @@ export async function processUnifiedUpload(
   if (!generateExam && !generateNotecards && !generateSummary) {
     return { success: false, error: "Select at least one item to generate." };
   }
+
+  const [examErr, notecardErr, summaryErr] = await Promise.all([
+    generateExam ? checkDbLimit("quizzes", user.id, DAILY_LIMITS.exams, "practice exams") : null,
+    generateNotecards ? checkDbLimit("notecard_sets", user.id, DAILY_LIMITS.notecard_sets, "notecard sets") : null,
+    generateSummary ? checkDbLimit("summaries", user.id, DAILY_LIMITS.summaries, "summaries") : null,
+  ]);
+  const limitError = examErr ?? notecardErr ?? summaryErr;
+  if (limitError) return { success: false, error: limitError };
   if (!baseTitle) return { success: false, error: "Please enter a title." };
   if (files.length === 0) return { success: false, error: "Please upload at least one PDF file." };
   for (const file of files) {
