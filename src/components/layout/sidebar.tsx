@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, LayoutDashboard, Settings, LogOut, PawPrint, Trophy } from "lucide-react";
+import { BookOpen, LayoutDashboard, Settings, LogOut, PawPrint, Trophy, Bug } from "lucide-react";
 import { PharmacyIcon } from "@/components/ui/pharmacy-icon";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/lib/actions/auth";
@@ -56,6 +56,20 @@ export function Sidebar() {
 
       {/* Bottom — settings + sign out */}
       <div className="px-3 py-4 space-y-0.5 border-t border-white/10 shrink-0">
+        <Link
+          href="/report-bug"
+          className={cn(
+            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+            isActive("/report-bug")
+              ? "text-white"
+              : "text-white/65 hover:text-white hover:bg-white/10"
+          )}
+          style={isActive("/report-bug") ? { backgroundColor: "hsl(var(--nav-active))" } : undefined}
+        >
+          <Bug className="h-4 w-4 shrink-0" />
+          Report a Bug
+        </Link>
+
         <Link
           href="/settings"
           className={cn(
