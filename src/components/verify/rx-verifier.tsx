@@ -5,6 +5,7 @@ import { CheckCircle, XCircle, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { generateRxScenarioAction } from "@/lib/actions/verify";
+import { logEvent } from "@/lib/actions/achievements";
 import type { RxScenario } from "@/lib/ai/generate";
 
 type GameState = "idle" | "loading" | "active" | "submitted";
@@ -33,6 +34,9 @@ export function RxVerifier() {
 
   function handleSubmit() {
     if (!selected || !scenario) return;
+    if (selected === scenario.correctAnswer) {
+      logEvent("rx_correct");
+    }
     setGameState("submitted");
   }
 

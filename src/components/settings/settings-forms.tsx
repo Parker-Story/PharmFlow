@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ export function SettingsForms({ displayName, email }: SettingsFormsProps) {
 }
 
 function ProfileForm({ displayName }: { displayName: string }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [msg, setMsg] = useState<Msg | null>(null);
 
@@ -37,6 +39,7 @@ function ProfileForm({ displayName }: { displayName: string }) {
         ? { type: "error", text: result.error }
         : { type: "success", text: result.success! }
       );
+      if (!result.error) router.refresh();
     });
   }
 
