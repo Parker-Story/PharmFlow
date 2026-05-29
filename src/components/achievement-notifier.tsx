@@ -14,7 +14,7 @@ export function AchievementNotifier() {
       for (const id of newlyEarned) {
         const def = ACHIEVEMENTS.find((a) => a.id === id);
         if (!def) continue;
-        toast(`${def.icon} Achievement Unlocked!`, {
+        toast(`${def.icon} Achievement Unlocked! +${def.points} pts`, {
           description: `${def.title}: ${def.description}`,
           duration: 5000,
         });

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { FileQuestion, StickyNote, BookText, Pill, List, Lock, Sparkles, ClipboardCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getUserPointsAndTier } from "@/lib/actions/achievements";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Dashboard | PharmFlow" };
 
@@ -70,6 +72,10 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] ?? "there";
+  const { totalPoints, tier, nextTier } = await getUserPointsAndTier(user!.id);
+  const progressPct = nextTier
+    ? Math.min(100, ((totalPoints - tier.minPoints) / (nextTier.minPoints - tier.minPoints)) * 100)
+    : 100;
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -77,6 +83,34 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold">Hey, {firstName} 👋</h1>
         <p className="text-muted-foreground">What do you want to study today?</p>
       </div>
+
+      <Link
+        href="/achievements"
+        className="flex items-center gap-4 rounded-2xl border bg-card px-6 py-4 max-w-3xl mx-auto w-full shadow-sm hover:shadow-md transition-shadow"
+      >
+        <span className="text-3xl">{tier.icon}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2">
+            <p className="font-semibold">{tier.name}</p>
+            <p className="text-sm text-muted-foreground">{totalPoints} pts</p>
+          </div>
+          <div className="mt-1.5 flex items-center gap-3">
+            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            {nextTier ? (
+              <span className="text-xs text-muted-foreground shrink-0">
+                {nextTier.minPoints - totalPoints} pts to {nextTier.icon} {nextTier.name}
+              </span>
+            ) : (
+              <span className="text-xs text-muted-foreground shrink-0">Max rank!</span>
+            )}
+          </div>
+        </div>
+      </Link>
 
       <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-3xl mx-auto w-full">
         {tools.map((tool, i) => {
