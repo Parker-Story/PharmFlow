@@ -10,7 +10,7 @@
 
 PharmFlow is a web app I built for my wife, who is studying to become a pharmacist. Pharmacy school involves memorizing enormous amounts of drug names, mechanisms, interactions, and clinical guidelines, and the existing study tools weren't built with that in mind.
 
-PharmFlow lets students upload their lecture notes (PDF) and instantly generate study materials tailored to pharmacy content, plus look up real FDA prescribing information without leaving the app.
+PharmFlow lets students upload their lecture notes (PDF) and instantly generate study materials tailored to pharmacy content, look up real FDA prescribing information, drill the top 200 drugs, practice prescription verification, and more.
 
 ---
 
@@ -23,11 +23,19 @@ PharmFlow lets students upload their lecture notes (PDF) and instantly generate 
 
 All three can be generated from a single upload at once. PDFs are never stored; only the extracted text is used for generation.
 
-**Drug Lookup**
-Search any drug by generic or brand name and get the full FDA-approved prescribing monograph: indications, dosage, mechanism of action, contraindications, warnings, adverse reactions, interactions, and more. No AI involved; data comes directly from RxNorm and OpenFDA.
+**Drug Reference**
+- **Drug Lookup**: search any drug by generic or brand name and get the full FDA-approved prescribing monograph. No AI involved; data comes directly from RxNorm and OpenFDA.
+- **Top 200 Drugs**: select drugs from the pharmacy top 200 list and drill them with flashcards. Includes drug class, dosage forms, use, and key facts. Progress is saved locally.
+
+**Pharmacy Practice Tools**
+- **Rx Verification**: act as the pharmacist. Review an AI-generated patient profile and prescription, then identify the clinical error (or confirm it's valid) from four options with a full explanation.
+- **Mnemonic Generator**: enter a group of drugs, pick a focus (list, mechanism, or side effects), and get a wild AI-generated mnemonic or story to make them stick.
 
 **Library**
-All generated content saves to a personal library with folder organization. Notecard sets can be studied, edited, and replayed. Practice exams track your score history.
+All generated content saves to a personal library with folder organization. Notecard sets can be studied, edited, and replayed. Practice exams track score history.
+
+**Achievements**
+Earn achievements for study milestones: generating exams and notecards, scoring 100%, looking up drugs, visiting the break page, and more. Toast notifications appear when something is unlocked.
 
 ---
 

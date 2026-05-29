@@ -200,7 +200,7 @@ ${text}`;
 
 export async function generateMnemonic(
   drugs: string[],
-  focus: "list" | "mechanism" | "side_effects"
+  focus: "mechanism" | "side_effects" | "interactions"
 ): Promise<{ mnemonic: string; explanation: string }> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY is not set.");
@@ -208,9 +208,9 @@ export async function generateMnemonic(
   const groq = new Groq({ apiKey });
 
   const focusDescriptions = {
-    list: "remembering the names of all the drugs in this group",
-    mechanism: "remembering the mechanism of action for these drugs",
-    side_effects: "remembering the key side effects of these drugs",
+    mechanism: "the mechanism of action for these drugs",
+    side_effects: "the key side effects of these drugs",
+    interactions: "the key drug interactions for these drugs",
   };
 
   const prompt = `You are a creative pharmacy tutor famous for wild, memorable mnemonics. Generate a mnemonic or short story to help a pharmacy student remember ${focusDescriptions[focus]}.
@@ -221,7 +221,55 @@ Be creative. Use acronyms, rhymes, ridiculous stories, visual imagery, or word a
 
 Return ONLY a valid JSON object with:
 - "mnemonic": string: the mnemonic itself (the acronym, rhyme, story, etc.)
-- "explanation": string: how it maps back to the drugs or concepts (1–3 sentences)`;
+- "explanation": string: a direct breakdown mapping each part of the mnemonic to a specific drug or concept. Be concise. Do not comment on the mnemonic itself or explain why it is memorable.`;
+
+  let completion;
+  try {
+    completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.9,
+    });
+  } catch (err: unknown) {
+    if ((err as { status?: number }).status === 429) {
+      throw new Error("AI quota reached for today. Try again later.");
+    }
+    throw err;
+  }
+
+  const raw = (completion.choices[0].message.content ?? "").trim();
+  const json = raw.startsWith("```")
+    ? raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim()
+    : raw;
+
+  try {
+    const parsed = JSON.parse(json) as { mnemonic: string; explanation: string };
+    if (!parsed.mnemonic || !parsed.explanation) throw new Error();
+    return { mnemonic: String(parsed.mnemonic), explanation: String(parsed.explanation) };
+  } catch {
+    throw new Error("AI returned malformed response. Please try again.");
+  }
+}
+
+export async function generateCardMnemonic(
+  drugName: string,
+  context: string
+): Promise<{ mnemonic: string; explanation: string }> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("GROQ_API_KEY is not set.");
+
+  const groq = new Groq({ apiKey });
+
+  const prompt = `You are a creative pharmacy tutor. Generate a single memorable mnemonic or short story to help a pharmacy student remember the key facts about ${drugName}.
+
+Key facts:
+${context}
+
+Be creative and concise. The weirder and more memorable, the better.
+
+Return ONLY a valid JSON object with:
+- "mnemonic": string: the mnemonic itself (acronym, rhyme, story, or image)
+- "explanation": string: a direct breakdown mapping each part of the mnemonic to a specific fact about the drug. No meta-commentary.`;
 
   let completion;
   try {

@@ -46,13 +46,13 @@ export function AuthForm({ mode }: AuthFormProps) {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white">PharmFlow</h1>
           <p className="mt-2 text-white/75 text-base max-w-xs leading-relaxed">
-            Upload lecture PDFs and generate practice exams instantly.
+            Everything you need for pharmacy school, in one place.
           </p>
         </div>
         <div className="mt-6 space-y-3 text-sm text-white/60 text-center">
-          <p>✦ AI-generated practice questions</p>
-          <p>✦ Organized study library</p>
-          <p>✦ Multiple choice &amp; true/false</p>
+          <p>✦ AI-generated exams, flashcards, and summaries</p>
+          <p>✦ FDA drug reference and Top 200 drills</p>
+          <p>✦ Rx verification and mnemonic tools</p>
         </div>
       </div>
 
@@ -68,7 +68,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               <PharmacyIcon className="h-7 w-7 text-white" strokeWidth={2} />
             </div>
             <h1 className="text-3xl font-bold" style={{ color: "hsl(var(--foreground))" }}>PharmFlow</h1>
-            <p className="mt-1 text-muted-foreground">Study smarter, not harder</p>
+            <p className="mt-1 text-muted-foreground">Find your flow.</p>
           </div>
 
           <Card className="border-2 shadow-xl">

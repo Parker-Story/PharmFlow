@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { RotateCcw, CheckCircle, XCircle } from "lucide-react";
+import { RotateCcw, CheckCircle, XCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { TOP_200 } from "@/data/top200";
+import { generateCardMnemonicAction } from "@/lib/actions/mnemonics";
 
 const LS_KEY = "pf_top200";
 
@@ -23,9 +24,14 @@ export function Top200Study() {
   const [studyKnown, setStudyKnown] = useState<Set<number>>(new Set());
   const [isFlipped, setIsFlipped] = useState(false);
   const [animState, setAnimState] = useState<"idle" | "out" | "in">("idle");
+  const [mnemonicResult, setMnemonicResult] = useState<{ mnemonic: string; explanation: string } | null>(null);
+  const [mnemonicLoading, setMnemonicLoading] = useState(false);
+  const [mnemonicError, setMnemonicError] = useState<string | null>(null);
 
   const pendingAction = useRef<"know" | "dontknow" | null>(null);
   const loaded = useRef(false);
+
+  const currentId = studyMode && studyQueue.length > 0 ? studyQueue[0] : null;
 
   useEffect(() => {
     try {
@@ -51,6 +57,12 @@ export function Top200Study() {
     };
     localStorage.setItem(LS_KEY, JSON.stringify(data));
   }, [selectedIds, studyMode, studyQueue, studyKnown]);
+
+  useEffect(() => {
+    setMnemonicResult(null);
+    setMnemonicError(null);
+    setMnemonicLoading(false);
+  }, [currentId]);
 
   useEffect(() => {
     if (!studyMode || studyQueue.length === 0) return;
@@ -183,12 +195,28 @@ export function Top200Study() {
       );
     }
 
-    const currentId = studyQueue[0];
     const drug = TOP_200.find((d) => d.id === currentId)!;
     const done = total - studyQueue.length;
 
+    async function handleGenerateMnemonic() {
+      setMnemonicLoading(true);
+      setMnemonicError(null);
+      const context = [
+        drug.drugClass && `Class: ${drug.drugClass}`,
+        drug.use && `Use: ${drug.use}`,
+        drug.facts && `Key facts: ${drug.facts}`,
+      ].filter(Boolean).join("\n");
+      const res = await generateCardMnemonicAction(drug.generic, context);
+      setMnemonicLoading(false);
+      if ("error" in res) {
+        setMnemonicError(res.error);
+      } else {
+        setMnemonicResult(res);
+      }
+    }
+
     return (
-      <div className="space-y-6 max-w-2xl mx-auto">
+      <div className="space-y-6 max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
           <button
             onClick={exitStudy}
@@ -205,81 +233,117 @@ export function Top200Study() {
           {studyQueue.length} remaining · {studyKnown.size} known
         </div>
 
-        <div
-          className={cn(
-            "cursor-pointer select-none rounded-2xl border bg-card shadow-md min-h-[300px] flex flex-col items-center justify-center p-8",
-            animState === "out" && "flip-out",
-            animState === "in" && "flip-in",
-            animState === "idle" && "hover:shadow-lg transition-all hover:-translate-y-0.5"
-          )}
-          onClick={() => {
-            if (animState === "idle") setIsFlipped((v) => !v);
-          }}
-          onAnimationEnd={handleAnimationEnd}
-        >
-          {!isFlipped ? (
-            <div className="text-center">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                #{drug.id}
-              </p>
-              <p className="text-2xl font-bold leading-snug">{drug.generic}</p>
-              <p className="text-base text-muted-foreground mt-2">{drug.brand}</p>
-              <p className="mt-8 text-xs text-muted-foreground">Click or press Space to flip</p>
+        <div className="flex gap-6 items-start">
+          {/* Card + action buttons */}
+          <div className="flex-1 min-w-0 space-y-4">
+            <div
+              className={cn(
+                "cursor-pointer select-none rounded-2xl border bg-card shadow-md min-h-[300px] flex flex-col items-center justify-center p-8",
+                animState === "out" && "flip-out",
+                animState === "in" && "flip-in",
+                animState === "idle" && "hover:shadow-lg transition-all hover:-translate-y-0.5"
+              )}
+              onClick={() => {
+                if (animState === "idle") setIsFlipped((v) => !v);
+              }}
+              onAnimationEnd={handleAnimationEnd}
+            >
+              {!isFlipped ? (
+                <div className="text-center">
+                  <p className="text-2xl font-bold leading-snug">{drug.generic}</p>
+                  <p className="mt-8 text-xs text-muted-foreground">Click or press Space to flip</p>
+                </div>
+              ) : (
+                <div className="w-full max-w-sm space-y-4">
+                  {drug.brand && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-0.5">Brand Name</p>
+                      <p className="text-sm">{drug.brand}</p>
+                    </div>
+                  )}
+                  {drug.drugClass && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-0.5">Class</p>
+                      <p className="text-sm">{drug.drugClass}</p>
+                    </div>
+                  )}
+                  {drug.forms && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-0.5">Dosage Forms</p>
+                      <p className="text-sm">{drug.forms}</p>
+                    </div>
+                  )}
+                  {drug.use && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-0.5">Use</p>
+                      <p className="text-sm">{drug.use}</p>
+                    </div>
+                  )}
+                  {drug.facts && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-0.5">Key Facts</p>
+                      <p className="text-sm">{drug.facts}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="w-full max-w-sm space-y-4">
-              {drug.drugClass && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-0.5">Class</p>
-                  <p className="text-sm">{drug.drugClass}</p>
-                </div>
-              )}
-              {drug.forms && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-0.5">Dosage Forms</p>
-                  <p className="text-sm">{drug.forms}</p>
-                </div>
-              )}
-              {drug.use && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-0.5">Use</p>
-                  <p className="text-sm">{drug.use}</p>
-                </div>
-              )}
-              {drug.facts && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-0.5">Key Facts</p>
-                  <p className="text-sm">{drug.facts}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
 
-        {isFlipped && animState === "idle" && (
-          <div className="space-y-2">
-            <div className="flex gap-3 justify-center">
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => handleCardAction("dontknow")}
-                className="flex-1 max-w-[200px] border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
-              >
-                <XCircle className="mr-2 h-4 w-4" />
-                Don&apos;t Know
-              </Button>
-              <Button
-                size="lg"
-                onClick={() => handleCardAction("know")}
-                className="flex-1 max-w-[200px] bg-green-600 hover:bg-green-700 text-white"
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Know It
-              </Button>
-            </div>
-            <p className="text-center text-xs text-muted-foreground">← Don&apos;t Know · Know It →</p>
+            {isFlipped && animState === "idle" && (
+              <div className="space-y-2">
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => handleCardAction("dontknow")}
+                    className="flex-1 max-w-[200px] border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Don&apos;t Know
+                  </Button>
+                  <Button
+                    size="lg"
+                    onClick={() => handleCardAction("know")}
+                    className="flex-1 max-w-[200px] bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Know It
+                  </Button>
+                </div>
+                <p className="text-center text-xs text-muted-foreground">← Don&apos;t Know · Know It →</p>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Mnemonic panel */}
+          <div className="w-64 shrink-0 space-y-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateMnemonic}
+              disabled={mnemonicLoading}
+              className="w-full"
+            >
+              <Sparkles className="mr-2 h-3.5 w-3.5" />
+              {mnemonicLoading ? "Generating..." : "Generate Mnemonic"}
+            </Button>
+            {mnemonicError && (
+              <p className="text-xs text-destructive">{mnemonicError}</p>
+            )}
+            {mnemonicResult && (
+              <div className="rounded-xl border bg-card p-4 space-y-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1.5">Mnemonic</p>
+                  <p className="text-sm font-medium leading-relaxed">{mnemonicResult.mnemonic}</p>
+                </div>
+                <div className="border-t pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1.5">Breakdown</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{mnemonicResult.explanation}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -341,11 +405,8 @@ export function Top200Study() {
             <span className="text-xs text-muted-foreground w-7 shrink-0 font-mono text-right">
               {drug.id}
             </span>
-            <div className="flex flex-1 min-w-0 items-baseline gap-3">
-              <span className="text-sm font-medium shrink-0">{drug.generic}</span>
-              <span className="text-xs text-muted-foreground truncate">{drug.brand}</span>
-            </div>
-            <span className="text-xs text-muted-foreground truncate hidden lg:block max-w-[220px] shrink-0">
+            <span className="text-sm font-medium">{drug.generic}</span>
+            <span className="text-xs text-muted-foreground truncate hidden lg:block ml-auto max-w-[220px] shrink-0">
               {drug.drugClass}
             </span>
           </label>
