@@ -1,6 +1,6 @@
 import { DrugSearchBar } from "@/components/drug-lookup/drug-search-bar";
 
-export const metadata = { title: "Drug Lookup — PharmFlow" };
+export const metadata = { title: "Drug Lookup | PharmFlow" };
 
 interface PageProps {
   searchParams: Promise<{ q?: string }>;

@@ -131,7 +131,7 @@ export async function processUploadedPdf(
       .eq("id", quiz.id);
 
     if (createNotecardSet && notecardCards.length > 0) {
-      const notecardTitle = `Notecard Set — ${formatTitleDate(new Date())}`;
+      const notecardTitle = `Notecard Set: ${formatTitleDate(new Date())}`;
       const { data: set } = await supabase
         .from("notecard_sets")
         .insert({

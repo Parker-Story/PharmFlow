@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { FileQuestion, StickyNote, BookText, Pill, List, Lock } from "lucide-react";
+import { FileQuestion, StickyNote, BookText, Pill, List, Lock, Sparkles, ClipboardCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "Dashboard — PharmFlow" };
+export const metadata = { title: "Dashboard | PharmFlow" };
 
 const tools = [
   {
@@ -40,7 +40,21 @@ const tools = [
     href: "/top200",
     available: true,
   },
-  ...Array.from({ length: 4 }, () => ({
+  {
+    title: "Mnemonic Generator",
+    description: "Get a quirky AI-generated mnemonic to help drug groups stick",
+    icon: Sparkles,
+    href: "/mnemonics",
+    available: true,
+  },
+  {
+    title: "Rx Verification",
+    description: "Act as the pharmacist and spot errors in AI-generated prescriptions",
+    icon: ClipboardCheck,
+    href: "/verify",
+    available: true,
+  },
+  ...Array.from({ length: 2 }, () => ({
     title: "Coming Soon",
     description: "A new study tool is on the way",
     icon: Lock,

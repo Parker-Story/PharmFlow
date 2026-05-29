@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "PharmFlow — Pharmacy Study Quizzes",
+  title: "PharmFlow: Pharmacy Study Quizzes",
   description: "Upload lecture PDFs and generate practice quizzes instantly.",
 };
 

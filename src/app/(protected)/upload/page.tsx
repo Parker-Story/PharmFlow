@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { UnifiedUploadForm } from "@/components/upload/unified-upload-form";
 import type { Folder } from "@/types/database";
 
-export const metadata = { title: "Generate Study Materials — PharmFlow" };
+export const metadata = { title: "Generate Study Materials | PharmFlow" };
 
 interface PageProps {
   searchParams: Promise<{ generate?: string }>;

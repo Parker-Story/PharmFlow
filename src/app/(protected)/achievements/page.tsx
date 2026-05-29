@@ -4,7 +4,7 @@ import { syncAchievements } from "@/lib/actions/achievements";
 import { ACHIEVEMENTS } from "@/data/achievements";
 import { cn } from "@/lib/utils";
 
-export const metadata = { title: "Achievements — PharmFlow" };
+export const metadata = { title: "Achievements | PharmFlow" };
 
 export default async function AchievementsPage() {
   await syncAchievements();

@@ -6,7 +6,7 @@ import { NotecardSetRow } from "@/components/library/notecard-set-row";
 import { SummaryRow } from "@/components/library/summary-row";
 import type { Quiz, Folder as FolderType, NotecardSet, Summary } from "@/types/database";
 
-export const metadata = { title: "Library — PharmFlow" };
+export const metadata = { title: "Library | PharmFlow" };
 
 export default async function LibraryPage() {
   const supabase = await createClient();
