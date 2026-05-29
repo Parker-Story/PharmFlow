@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { extractTextFromPdf, chunkText } from "@/lib/pdf/extract";
 import { generateFlashcardsFromChunks, generateQuestionsFromChunks } from "@/lib/ai/generate";
 import { formatTitleDate } from "@/lib/utils/date";
+import { checkDbLimit, DAILY_LIMITS } from "@/lib/actions/limits";
 import type { NotecardProcessingResult } from "@/types/notecards";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -24,6 +25,13 @@ export async function processNotecardPdf(formData: FormData): Promise<NotecardPr
   for (const file of files) {
     if (file.type !== "application/pdf") return { success: false, error: `${file.name} is not a PDF.` };
     if (file.size > MAX_FILE_SIZE) return { success: false, error: `${file.name} must be under 10 MB.` };
+  }
+
+  const notecardErr = await checkDbLimit("notecard_sets", user.id, DAILY_LIMITS.notecard_sets, "notecard sets");
+  if (notecardErr) return { success: false, error: notecardErr };
+  if (createExam) {
+    const examErr = await checkDbLimit("quizzes", user.id, DAILY_LIMITS.exams, "practice exams");
+    if (examErr) return { success: false, error: examErr };
   }
 
   const sourceFilename = files.length === 1 ? files[0].name : `${files.length} files`;
