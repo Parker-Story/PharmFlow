@@ -6,17 +6,17 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { generateMnemonicAction } from "@/lib/actions/mnemonics";
 
-type Focus = "list" | "mechanism" | "side_effects";
+type Focus = "mechanism" | "side_effects" | "interactions";
 
 const FOCUS_OPTIONS: { value: Focus; label: string; description: string }[] = [
-  { value: "list", label: "Remember the List", description: "Mnemonic for memorizing the group of drugs" },
   { value: "mechanism", label: "Mechanism of Action", description: "Mnemonic for how these drugs work" },
   { value: "side_effects", label: "Side Effects", description: "Mnemonic for key adverse effects" },
+  { value: "interactions", label: "Drug Interactions", description: "Mnemonic for key interactions to watch for" },
 ];
 
 export function MnemonicGenerator() {
   const [input, setInput] = useState("");
-  const [focus, setFocus] = useState<Focus>("list");
+  const [focus, setFocus] = useState<Focus>("mechanism");
   const [result, setResult] = useState<{ mnemonic: string; explanation: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

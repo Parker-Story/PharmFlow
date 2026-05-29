@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { PharmacyIcon } from "@/components/ui/pharmacy-icon";
 import { Button } from "@/components/ui/button";
-import { FlaskConical, BookOpen, LayoutGrid } from "lucide-react";
+import { Sparkles, Pill, ClipboardCheck } from "lucide-react";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -44,12 +44,12 @@ export default async function HomePage() {
         </div>
 
         <h1 className="text-5xl font-bold tracking-tight max-w-2xl leading-tight">
-          Study smarter,<br />
-          <span style={{ color: "hsl(var(--primary))" }}>not harder.</span>
+          Find your{" "}
+          <span style={{ color: "hsl(var(--primary))" }}>flow.</span>
         </h1>
 
         <p className="mt-5 text-lg text-muted-foreground max-w-md leading-relaxed">
-          Upload your pharmacy lecture PDFs and get AI-generated practice exams in seconds. Built for pharmacy students.
+          Everything you need for pharmacy school, in one place.
         </p>
 
         <div className="mt-8 flex items-center gap-4">
@@ -70,11 +70,11 @@ export default async function HomePage() {
               className="flex h-10 w-10 items-center justify-center rounded-lg"
               style={{ backgroundColor: "hsl(var(--navbar))" }}
             >
-              <FlaskConical className="h-5 w-5 text-white" />
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <h3 className="font-semibold">Practice Exams</h3>
+            <h3 className="font-semibold">AI Study Materials</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Upload any lecture PDF and get custom multiple choice and true/false questions generated instantly.
+              Upload any lecture PDF and instantly generate practice exams, flashcard sets, or a concise summary.
             </p>
           </div>
 
@@ -83,11 +83,11 @@ export default async function HomePage() {
               className="flex h-10 w-10 items-center justify-center rounded-lg"
               style={{ backgroundColor: "hsl(var(--navbar))" }}
             >
-              <BookOpen className="h-5 w-5 text-white" />
+              <Pill className="h-5 w-5 text-white" />
             </div>
-            <h3 className="font-semibold">Organized Library</h3>
+            <h3 className="font-semibold">Drug Reference</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Save and organize your exams into folders by course, topic, or whatever works for you.
+              Look up any drug&apos;s full FDA prescribing information or drill the top 200 drugs with flashcards.
             </p>
           </div>
 
@@ -96,11 +96,11 @@ export default async function HomePage() {
               className="flex h-10 w-10 items-center justify-center rounded-lg"
               style={{ backgroundColor: "hsl(var(--navbar))" }}
             >
-              <LayoutGrid className="h-5 w-5 text-white" />
+              <ClipboardCheck className="h-5 w-5 text-white" />
             </div>
-            <h3 className="font-semibold">More Tools Coming</h3>
+            <h3 className="font-semibold">Pharmacy Practice</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Drug interaction tables, dosage calculators, and more study tools on the way.
+              Spot errors in AI-generated prescriptions, build mnemonics for drug groups, and earn achievements as you study.
             </p>
           </div>
         </div>
