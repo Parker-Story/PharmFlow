@@ -49,11 +49,6 @@ export function AuthForm({ mode }: AuthFormProps) {
             Everything you need for pharmacy school, in one place.
           </p>
         </div>
-        <div className="mt-6 space-y-3 text-sm text-white/60 text-center">
-          <p>✦ AI-generated exams, flashcards, and summaries</p>
-          <p>✦ FDA drug reference and Top 200 drills</p>
-          <p>✦ Rx verification and mnemonic tools</p>
-        </div>
       </div>
 
       {/* Right form panel */}
@@ -87,11 +82,11 @@ export function AuthForm({ mode }: AuthFormProps) {
               <CardContent className="space-y-4">
                 {!isLogin && (
                   <div className="space-y-1.5">
-                    <Label htmlFor="full_name">Full name</Label>
+                    <Label htmlFor="full_name">Name</Label>
                     <Input
                       id="full_name"
                       name="full_name"
-                      placeholder="Jane Doe"
+                      placeholder="Jane"
                       autoComplete="name"
                     />
                   </div>

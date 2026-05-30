@@ -27,16 +27,16 @@ export interface AchievementCounts {
 }
 
 export interface SyncResult {
-  unlockedIds: string[];
-  newlyEarned: string[];
+  claimedIds: string[];
+  claimableIds: string[];
   totalPoints: number;
   counts: AchievementCounts;
 }
 
 export async function syncAchievements(): Promise<SyncResult> {
   const empty: SyncResult = {
-    unlockedIds: [],
-    newlyEarned: [],
+    claimedIds: [],
+    claimableIds: [],
     totalPoints: 0,
     counts: {
       quizCount: 0, attemptCount: 0, perfectCount: 0, notecardCount: 0,
@@ -51,12 +51,14 @@ export async function syncAchievements(): Promise<SyncResult> {
   } = await supabase.auth.getUser();
   if (!user) return empty;
 
-  const { data: existing } = await supabase
+  // user_achievements now means "claimed"
+  const { data: claimed } = await supabase
     .from("user_achievements")
     .select("achievement_id")
     .eq("user_id", user.id);
 
-  const alreadyUnlocked = new Set((existing ?? []).map((r) => r.achievement_id));
+  const claimedIds = (claimed ?? []).map((r) => r.achievement_id);
+  const claimedSet = new Set(claimedIds);
 
   const [
     { count: quizCount },
@@ -84,10 +86,10 @@ export async function syncAchievements(): Promise<SyncResult> {
   const mnemonicCount   = eventList.filter((e) => e.event_type === "group_mnemonic" || e.event_type === "card_mnemonic").length;
   const breakVisits     = eventList.filter((e) => e.event_type === "break_visit").length;
 
-  const qCount  = quizCount ?? 0;
-  const ncCount = notecardCount ?? 0;
+  const qCount   = quizCount ?? 0;
+  const ncCount  = notecardCount ?? 0;
   const sumCount = summaryCount ?? 0;
-  const fCount  = folderCount ?? 0;
+  const fCount   = folderCount ?? 0;
 
   const counts: AchievementCounts = {
     quizCount: qCount, attemptCount, perfectCount,
@@ -109,31 +111,49 @@ export async function syncAchievements(): Promise<SyncResult> {
     take_a_break: breakVisits >= 1,
   };
 
-  const newlyEarned: string[] = [];
+  // Compute claimable: condition met but not yet claimed
+  const claimableIds: string[] = [];
   for (const achievement of ACHIEVEMENTS) {
-    if (alreadyUnlocked.has(achievement.id)) continue;
+    if (claimedSet.has(achievement.id)) continue;
     let met = false;
     if (achievement.metric && achievement.threshold !== null) {
       met = (metricMap[achievement.metric] ?? 0) >= achievement.threshold;
     } else if (achievement.id in specialConditions) {
       met = specialConditions[achievement.id];
     }
-    if (met) newlyEarned.push(achievement.id);
+    if (met) claimableIds.push(achievement.id);
   }
 
-  if (newlyEarned.length > 0) {
-    await supabase
-      .from("user_achievements")
-      .insert(newlyEarned.map((achievement_id) => ({ user_id: user.id, achievement_id })));
-  }
-
-  const allUnlocked = [...alreadyUnlocked, ...newlyEarned];
-  const totalPoints = allUnlocked.reduce((sum, id) => {
+  const totalPoints = claimedIds.reduce((sum, id) => {
     const def = ACHIEVEMENTS.find((a) => a.id === id);
     return sum + (def?.points ?? 0);
   }, 0);
 
-  return { unlockedIds: allUnlocked, newlyEarned, totalPoints, counts };
+  return { claimedIds, claimableIds, totalPoints, counts };
+}
+
+export async function claimAchievement(achievementId: string): Promise<{ success: boolean; totalPoints: number }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, totalPoints: 0 };
+
+  await supabase
+    .from("user_achievements")
+    .upsert({ user_id: user.id, achievement_id: achievementId });
+
+  const { data: claimed } = await supabase
+    .from("user_achievements")
+    .select("achievement_id")
+    .eq("user_id", user.id);
+
+  const totalPoints = (claimed ?? []).reduce((sum, row) => {
+    const def = ACHIEVEMENTS.find((a) => a.id === row.achievement_id);
+    return sum + (def?.points ?? 0);
+  }, 0);
+
+  return { success: true, totalPoints };
 }
 
 export async function getUserPointsAndTier(userId: string): Promise<{
