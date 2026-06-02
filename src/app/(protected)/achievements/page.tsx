@@ -1,19 +1,12 @@
 import { Trophy } from "lucide-react";
 import { syncAchievements } from "@/lib/actions/achievements";
-import { ACHIEVEMENTS, getTier, getNextTier } from "@/data/achievements";
-import { TierBrowser } from "@/components/achievements/tier-browser";
-import { AchievementGrid } from "@/components/achievements/achievement-grid";
+import { ACHIEVEMENTS } from "@/data/achievements";
+import { AchievementsClient } from "@/components/achievements/achievements-client";
 
 export const metadata = { title: "Achievements | PharmFlow" };
 
 export default async function AchievementsPage() {
   const { claimedIds, claimableIds, totalPoints, counts } = await syncAchievements();
-
-  const tier = getTier(totalPoints);
-  const nextTier = getNextTier(totalPoints);
-  const progressPct = nextTier
-    ? Math.min(100, ((totalPoints - tier.minPoints) / (nextTier.minPoints - tier.minPoints)) * 100)
-    : 100;
 
   const completedCount = claimedIds.length;
   const total = ACHIEVEMENTS.length;
@@ -30,14 +23,7 @@ export default async function AchievementsPage() {
         </div>
       </div>
 
-      <TierBrowser
-        currentTier={tier}
-        totalPoints={totalPoints}
-        nextTier={nextTier}
-        progressPct={progressPct}
-      />
-
-      <AchievementGrid
+      <AchievementsClient
         initialClaimedIds={claimedIds}
         claimableIds={claimableIds}
         counts={counts}

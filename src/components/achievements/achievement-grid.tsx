@@ -13,6 +13,7 @@ interface AchievementGridProps {
   claimableIds: string[];
   counts: AchievementCounts;
   initialTotalPoints: number;
+  onPointsChange?: (pts: number) => void;
 }
 
 export function AchievementGrid({
@@ -20,6 +21,7 @@ export function AchievementGrid({
   claimableIds: initialClaimableIds,
   counts,
   initialTotalPoints,
+  onPointsChange,
 }: AchievementGridProps) {
   const [claimedSet, setClaimedSet] = useState(new Set(initialClaimedIds));
   const [claimableSet, setClaimableSet] = useState(new Set(initialClaimableIds));
@@ -44,6 +46,7 @@ export function AchievementGrid({
       setClaimedSet((prev) => new Set([...prev, a.id]));
       setClaimableSet((prev) => { const next = new Set(prev); next.delete(a.id); return next; });
       setTotalPoints(result.totalPoints);
+      onPointsChange?.(result.totalPoints);
       setJustClaimedId(a.id);
       toast(`${a.icon} +${a.points} pts!`, { description: `${a.title} claimed!`, duration: 3000 });
       setTimeout(() => setJustClaimedId(null), 700);
