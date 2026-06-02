@@ -38,6 +38,11 @@ export async function processUnifiedUpload(
   const generateNotecards = formData.get("generate_notecards") === "true";
   const generateSummary = formData.get("generate_summary") === "true";
 
+  const multipleOutputs = [generateExam, generateNotecards, generateSummary].filter(Boolean).length > 1;
+  const examTitle      = multipleOutputs ? `${baseTitle} (Exam)` : baseTitle;
+  const notecardsTitle = multipleOutputs ? `${baseTitle} (Notecards)` : baseTitle;
+  const summaryTitle   = multipleOutputs ? `${baseTitle} (Summary)` : baseTitle;
+
   const questionCount = Math.min(50, Math.max(5, Number(formData.get("question_count")) || 20));
   const difficulty = (formData.get("difficulty") as "easy" | "medium" | "hard") || "medium";
   const questionType = (formData.get("question_type") as "multiple_choice" | "true_false" | "mix") || "mix";
@@ -126,7 +131,7 @@ export async function processUnifiedUpload(
   if (generateExam && examQuestions.length > 0) {
     const { data: quiz } = await supabase
       .from("quizzes")
-      .insert({ user_id: user.id, title: baseTitle, source_filename: sourceFilename, status: "processing", folder_id: examFolderId })
+      .insert({ user_id: user.id, title: examTitle, source_filename: sourceFilename, status: "processing", folder_id: examFolderId })
       .select()
       .single();
     if (quiz) {
@@ -149,7 +154,7 @@ export async function processUnifiedUpload(
   if (generateNotecards && notecardCards.length > 0) {
     const { data: set } = await supabase
       .from("notecard_sets")
-      .insert({ user_id: user.id, title: baseTitle, source_filename: sourceFilename, status: "processing", folder_id: notecardsFolderId })
+      .insert({ user_id: user.id, title: notecardsTitle, source_filename: sourceFilename, status: "processing", folder_id: notecardsFolderId })
       .select()
       .single();
     if (set) {
@@ -164,7 +169,7 @@ export async function processUnifiedUpload(
   if (generateSummary && summaryText) {
     const { data: summary } = await supabase
       .from("summaries")
-      .insert({ user_id: user.id, title: baseTitle, source_filename: sourceFilename, content: summaryText, folder_id: summaryFolderId })
+      .insert({ user_id: user.id, title: summaryTitle, source_filename: sourceFilename, content: summaryText, folder_id: summaryFolderId })
       .select()
       .single();
     if (summary) summaryId = summary.id;

@@ -3,10 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { NewFolderForm } from "@/components/library/new-folder-form";
-import { FolderCard } from "@/components/library/folder-card";
-import { ExamRow } from "@/components/library/exam-row";
-import { NotecardSetRow } from "@/components/library/notecard-set-row";
-import { SummaryRow } from "@/components/library/summary-row";
+import { LibraryGrid } from "@/components/library/library-grid";
 import { Button } from "@/components/ui/button";
 import type { Quiz, Folder, NotecardSet, Summary } from "@/types/database";
 
@@ -52,6 +49,9 @@ export default async function FolderPage({ params }: PageProps) {
     }
   }
 
+  const latestScoresObj: Record<string, { score: number; total: number }> = {};
+  for (const [k, v] of latestScores) latestScoresObj[k] = v;
+
   const parentHref = folder.parent_id ? `/library/${folder.parent_id}` : "/library";
 
   return (
@@ -68,56 +68,14 @@ export default async function FolderPage({ params }: PageProps) {
           <NewFolderForm parentId={folderId} />
         </div>
       </div>
-
-      {subfolders.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Folders</h2>
-          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-            {subfolders.map((sub) => (
-              <FolderCard key={sub.id} folder={sub} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {exams.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Practice Exams</h2>
-          <div className="space-y-2">
-            {exams.map((exam) => (
-              <ExamRow key={exam.id} exam={exam} lastScore={latestScores.get(exam.id)} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {notecardSets.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Notecard Sets</h2>
-          <div className="space-y-2">
-            {notecardSets.map((set) => (
-              <NotecardSetRow key={set.id} set={set} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {summaries.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Summaries</h2>
-          <div className="space-y-2">
-            {summaries.map((s) => (
-              <SummaryRow key={s.id} summary={s} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {exams.length === 0 && notecardSets.length === 0 && summaries.length === 0 && subfolders.length === 0 && (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          No files in this folder yet.
-        </p>
-      )}
+      <LibraryGrid
+        folders={subfolders}
+        exams={exams}
+        notecardSets={notecardSets}
+        summaries={summaries}
+        latestScores={latestScoresObj}
+        currentFolderId={folderId}
+      />
     </div>
   );
 }

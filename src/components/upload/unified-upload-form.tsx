@@ -419,9 +419,9 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
         ) : (
           <div className="cursor-pointer py-2">
             <Upload className="mx-auto h-10 w-10 text-muted-foreground/50" />
-            <p className="mt-3 font-medium">Drop your PDFs here</p>
+            <p className="mt-3 font-medium">Drop one or more PDFs here</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              or click to browse. Multiple files supported, max {MAX_SIZE_MB} MB each
+              or click to browse. Hold Ctrl/Cmd to pick multiple. Max {MAX_SIZE_MB} MB each.
             </p>
           </div>
         )}
