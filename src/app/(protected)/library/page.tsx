@@ -1,9 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NewFolderForm } from "@/components/library/new-folder-form";
-import { FolderCard } from "@/components/library/folder-card";
-import { ExamRow } from "@/components/library/exam-row";
-import { NotecardSetRow } from "@/components/library/notecard-set-row";
-import { SummaryRow } from "@/components/library/summary-row";
+import { LibraryGrid } from "@/components/library/library-grid";
 import type { Quiz, Folder as FolderType, NotecardSet, Summary } from "@/types/database";
 
 export const metadata = { title: "Library | PharmFlow" };
@@ -41,7 +38,8 @@ export default async function LibraryPage() {
     }
   }
 
-  const hasFiles = exams.length > 0 || notecardSets.length > 0 || summaries.length > 0;
+  const latestScoresObj: Record<string, { score: number; total: number }> = {};
+  for (const [k, v] of latestScores) latestScoresObj[k] = v;
 
   return (
     <div className="space-y-8">
@@ -49,56 +47,13 @@ export default async function LibraryPage() {
         <h1 className="text-2xl font-bold">All Files</h1>
         <NewFolderForm />
       </div>
-
-      {folders.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Folders</h2>
-          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-            {folders.map((folder) => (
-              <FolderCard key={folder.id} folder={folder} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {exams.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Practice Exams</h2>
-          <div className="space-y-2">
-            {exams.map((exam) => (
-              <ExamRow key={exam.id} exam={exam} lastScore={latestScores.get(exam.id)} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {notecardSets.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Notecard Sets</h2>
-          <div className="space-y-2">
-            {notecardSets.map((set) => (
-              <NotecardSetRow key={set.id} set={set} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {summaries.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Summaries</h2>
-          <div className="space-y-2">
-            {summaries.map((s) => (
-              <SummaryRow key={s.id} summary={s} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {!hasFiles && folders.length === 0 && (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          No files here yet. Generate an exam or notecard set and save it to the library.
-        </p>
-      )}
+      <LibraryGrid
+        folders={folders}
+        exams={exams}
+        notecardSets={notecardSets}
+        summaries={summaries}
+        latestScores={latestScoresObj}
+      />
     </div>
   );
 }
