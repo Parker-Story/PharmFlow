@@ -30,7 +30,9 @@ export async function processUnifiedUpload(
 
   const files = (formData.getAll("file") as File[]).filter((f) => f && f.size > 0);
   const baseTitle = (formData.get("title") as string)?.trim() || "";
-  const folderId = (formData.get("folder_id") as string) || null;
+  const examFolderId      = (formData.get("exam_folder_id") as string) || null;
+  const notecardsFolderId = (formData.get("notecards_folder_id") as string) || null;
+  const summaryFolderId   = (formData.get("summary_folder_id") as string) || null;
 
   const generateExam = formData.get("generate_exam") === "true";
   const generateNotecards = formData.get("generate_notecards") === "true";
@@ -124,7 +126,7 @@ export async function processUnifiedUpload(
   if (generateExam && examQuestions.length > 0) {
     const { data: quiz } = await supabase
       .from("quizzes")
-      .insert({ user_id: user.id, title: baseTitle, source_filename: sourceFilename, status: "processing", folder_id: folderId })
+      .insert({ user_id: user.id, title: baseTitle, source_filename: sourceFilename, status: "processing", folder_id: examFolderId })
       .select()
       .single();
     if (quiz) {
@@ -147,7 +149,7 @@ export async function processUnifiedUpload(
   if (generateNotecards && notecardCards.length > 0) {
     const { data: set } = await supabase
       .from("notecard_sets")
-      .insert({ user_id: user.id, title: baseTitle, source_filename: sourceFilename, status: "processing", folder_id: folderId })
+      .insert({ user_id: user.id, title: baseTitle, source_filename: sourceFilename, status: "processing", folder_id: notecardsFolderId })
       .select()
       .single();
     if (set) {
@@ -162,7 +164,7 @@ export async function processUnifiedUpload(
   if (generateSummary && summaryText) {
     const { data: summary } = await supabase
       .from("summaries")
-      .insert({ user_id: user.id, title: baseTitle, source_filename: sourceFilename, content: summaryText, folder_id: folderId })
+      .insert({ user_id: user.id, title: baseTitle, source_filename: sourceFilename, content: summaryText, folder_id: summaryFolderId })
       .select()
       .single();
     if (summary) summaryId = summary.id;

@@ -22,12 +22,11 @@ export default async function UploadPage({ searchParams }: PageProps) {
 
   const { data: rawFolders } = await supabase
     .from("folders")
-    .select("id, name")
+    .select("id, name, parent_id")
     .eq("user_id", user!.id)
-    .is("parent_id", null)
     .order("created_at");
 
-  const folders = (rawFolders ?? []) as Pick<Folder, "id" | "name">[];
+  const folders = (rawFolders ?? []) as Pick<Folder, "id" | "name" | "parent_id">[];
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
