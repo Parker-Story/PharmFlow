@@ -13,6 +13,7 @@ const tools = [
     icon: FileQuestion,
     href: "/upload?generate=exam",
     available: true,
+    maxPts: 220,
   },
   {
     title: "Notecards",
@@ -20,6 +21,7 @@ const tools = [
     icon: StickyNote,
     href: "/upload?generate=notecards",
     available: true,
+    maxPts: 100,
   },
   {
     title: "Summary",
@@ -27,6 +29,7 @@ const tools = [
     icon: BookText,
     href: "/upload?generate=summary",
     available: true,
+    maxPts: 50,
   },
   {
     title: "Drug Lookup",
@@ -34,6 +37,7 @@ const tools = [
     icon: Pill,
     href: "/drug-lookup",
     available: true,
+    maxPts: 100,
   },
   {
     title: "Top 200 Drugs",
@@ -41,6 +45,7 @@ const tools = [
     icon: List,
     href: "/top200",
     available: true,
+    maxPts: null,
   },
   {
     title: "Mnemonic Generator",
@@ -48,6 +53,7 @@ const tools = [
     icon: Sparkles,
     href: "/mnemonics",
     available: true,
+    maxPts: 70,
   },
   {
     title: "Rx Verification",
@@ -55,6 +61,7 @@ const tools = [
     icon: ClipboardCheck,
     href: "/verify",
     available: true,
+    maxPts: 370,
   },
   ...Array.from({ length: 2 }, () => ({
     title: "Coming Soon",
@@ -62,6 +69,7 @@ const tools = [
     icon: Lock,
     href: null,
     available: false,
+    maxPts: null,
   })),
 ];
 
@@ -141,6 +149,11 @@ export default async function DashboardPage() {
                 <p className="text-sm font-semibold leading-snug">{tool.title}</p>
                 <p className="mt-1 text-xs text-muted-foreground leading-snug">{tool.description}</p>
               </div>
+              {tool.maxPts && (
+                <span className="text-xs font-semibold rounded-full bg-primary/10 text-primary px-2.5 py-0.5">
+                  up to {tool.maxPts} pts
+                </span>
+              )}
             </Link>
           );
         })}

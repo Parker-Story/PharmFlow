@@ -4,6 +4,7 @@ import { ArrowLeft, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { QuizPlayer } from "@/components/quiz/quiz-player";
 import { Button } from "@/components/ui/button";
+import { PointsHint } from "@/components/ui/points-hint";
 import type { Quiz, Question } from "@/types/database";
 import type { QuizWithQuestions } from "@/types/quiz";
 
@@ -155,6 +156,9 @@ export default async function QuizPage({ params }: PageProps) {
         </div>
         <h1 className="text-2xl font-bold">{quiz.title}</h1>
         <p className="text-sm text-muted-foreground">{quiz.source_filename}</p>
+        <div className="mt-2">
+          <PointsHint ids={["exam_done_1", "exam_done_5", "exam_done_10", "exam_done_25", "perfect_1", "perfect_3", "perfect_5"]} />
+        </div>
       </div>
 
       <QuizPlayer quiz={quizWithQuestions} initialAnswers={initialAnswers} initialSubmitted={hasInitialAnswers} />
