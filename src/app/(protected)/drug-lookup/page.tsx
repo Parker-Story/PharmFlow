@@ -1,4 +1,5 @@
 import { DrugSearchBar } from "@/components/drug-lookup/drug-search-bar";
+import { PointsHint } from "@/components/ui/points-hint";
 
 export const metadata = { title: "Drug Lookup | PharmFlow" };
 
@@ -11,11 +12,12 @@ export default async function DrugLookupPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
+      <div className="space-y-2">
         <h1 className="text-2xl font-bold">Drug Lookup</h1>
         <p className="text-muted-foreground">
           Search for FDA-approved prescribing information on any drug.
         </p>
+        <PointsHint ids={["drug_lookup_1", "drug_lookup_10", "drug_lookup_25"]} />
       </div>
 
       <DrugSearchBar initialQuery={q} />

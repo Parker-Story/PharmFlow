@@ -23,8 +23,8 @@ export const TIERS: Tier[] = [
   { name: "PharmD Padawan",        icon: "⚗️",  minPoints: 350 },
   { name: "Rx Ranger",             icon: "🤠", minPoints: 600 },
   { name: "Board Slayer",          icon: "⚔️",  minPoints: 900 },
-  { name: "Clinical Pharmacist",   icon: "🏥", minPoints: 1200 },
-  { name: "The Pharmacist",        icon: "👑", minPoints: 1800 },
+  { name: "Clinical Pharmacist",   icon: "🏥", minPoints: 1100 },
+  { name: "The Pharmacist",        icon: "👑", minPoints: 1400 },
 ];
 
 export function getTier(points: number): Tier {
