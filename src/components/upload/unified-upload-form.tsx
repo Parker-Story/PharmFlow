@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition, useRef } from "react";
 import Link from "next/link";
 import {
   Upload, FileText, X, Loader2, CheckCircle,
-  FileQuestion, StickyNote, BookText, ChevronDown,
+  FileQuestion, StickyNote, BookText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,18 +100,15 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
   const [result, setResult] = useState<UnifiedUploadResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Generator toggles â€” pre-select based on query param, or all three if none
   const initial = initialGenerate ?? "all";
   const [genExam, setGenExam] = useState(initial === "all" || initial === "exam");
   const [genNotecards, setGenNotecards] = useState(initial === "all" || initial === "notecards");
   const [genSummary, setGenSummary] = useState(initial === "all" || initial === "summary");
 
-  // Exam options
   const [questionCount, setQuestionCount] = useState(20);
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [questionType, setQuestionType] = useState<QuestionType>("mix");
 
-  // Notecard options
   const [cardCount, setCardCount] = useState(20);
 
   const [examFolderId, setExamFolderId] = useState("");
@@ -185,7 +182,7 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
               <FileQuestion className="h-5 w-5 text-primary/70 shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Practice Exam ready</p>
-                <p className="text-xs text-muted-foreground">Take your exam â†’</p>
+                <p className="text-xs text-muted-foreground">Take your exam →</p>
               </div>
             </Link>
           )}
@@ -197,7 +194,7 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
               <StickyNote className="h-5 w-5 text-primary/70 shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Notecards ready</p>
-                <p className="text-xs text-muted-foreground">Start studying â†’</p>
+                <p className="text-xs text-muted-foreground">Start studying →</p>
               </div>
             </Link>
           )}
@@ -209,7 +206,7 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
               <BookText className="h-5 w-5 text-primary/70 shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Summary ready</p>
-                <p className="text-xs text-muted-foreground">Read your summary â†’</p>
+                <p className="text-xs text-muted-foreground">Read your summary →</p>
               </div>
             </Link>
           )}
@@ -251,7 +248,7 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
                   <div className="flex items-center gap-2">
                     <button type="button" onClick={() => setQuestionCount((c) => Math.max(5, c - 5))}
                       className="flex h-8 w-8 items-center justify-center rounded-md border bg-background text-lg font-medium hover:bg-accent disabled:opacity-40"
-                      disabled={questionCount <= 5}>âˆ’</button>
+                      disabled={questionCount <= 5}>−</button>
                     <span className="w-8 text-center text-sm font-semibold">{questionCount}</span>
                     <button type="button" onClick={() => setQuestionCount((c) => Math.min(50, c + 5))}
                       className="flex h-8 w-8 items-center justify-center rounded-md border bg-background text-lg font-medium hover:bg-accent disabled:opacity-40"
@@ -284,7 +281,7 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
                 >
                   <option value="">Library root</option>
                   {buildFolderTree(folders).map((f) => (
-                    <option key={f.id} value={f.id}>{"  ".repeat(f.depth)}{f.depth > 0 ? "â”” " : ""}{f.name}</option>
+                    <option key={f.id} value={f.id}>{"  ".repeat(f.depth)}{f.depth > 0 ? "└ " : ""}{f.name}</option>
                   ))}
                 </select>
               </div>
@@ -309,7 +306,7 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
                 <div className="flex items-center gap-2">
                   <button type="button" onClick={() => setCardCount((c) => Math.max(10, c - 5))}
                     className="flex h-8 w-8 items-center justify-center rounded-md border bg-background text-lg font-medium hover:bg-accent disabled:opacity-40"
-                    disabled={cardCount <= 10}>âˆ’</button>
+                    disabled={cardCount <= 10}>−</button>
                   <span className="w-8 text-center text-sm font-semibold">{cardCount}</span>
                   <button type="button" onClick={() => setCardCount((c) => Math.min(60, c + 5))}
                     className="flex h-8 w-8 items-center justify-center rounded-md border bg-background text-lg font-medium hover:bg-accent disabled:opacity-40"
@@ -325,7 +322,7 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
                 >
                   <option value="">Library root</option>
                   {buildFolderTree(folders).map((f) => (
-                    <option key={f.id} value={f.id}>{"  ".repeat(f.depth)}{f.depth > 0 ? "â”” " : ""}{f.name}</option>
+                    <option key={f.id} value={f.id}>{"  ".repeat(f.depth)}{f.depth > 0 ? "└ " : ""}{f.name}</option>
                   ))}
                 </select>
               </div>
@@ -354,30 +351,13 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
                 >
                   <option value="">Library root</option>
                   {buildFolderTree(folders).map((f) => (
-                    <option key={f.id} value={f.id}>{"  ".repeat(f.depth)}{f.depth > 0 ? "â”” " : ""}{f.name}</option>
+                    <option key={f.id} value={f.id}>{"  ".repeat(f.depth)}{f.depth > 0 ? "└ " : ""}{f.name}</option>
                   ))}
                 </select>
               </div>
             </div>
           )}
         </div>
-      </div>
-
-      {/* Folder */}
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground">Save to folder</Label>
-        <select
-          value={""}
-          onChange={() => {}}
-          className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="">Library root</option>
-          {buildFolderTree(folders).map((f) => (
-            <option key={f.id} value={f.id}>
-              {"Â Â ".repeat(f.depth)}{f.depth > 0 ? "â”” " : ""}{f.name}
-            </option>
-          ))}
-        </select>
       </div>
 
       {/* Drop zone */}
@@ -433,7 +413,7 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
         <Card className="border-0 bg-primary/5">
           <CardContent className="pt-4 pb-4 space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Processing lectureâ€¦</span>
+              <span className="text-muted-foreground">Processing lecture…</span>
               <span className="font-medium">{progress}%</span>
             </div>
             <Progress value={progress} className="h-2" />
@@ -451,7 +431,7 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
         disabled={selectedFiles.length === 0 || (!genExam && !genNotecards && !genSummary) || isPending}
       >
         {isPending ? (
-          <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processingâ€¦</>
+          <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing…</>
         ) : (
           <><Upload className="mr-2 h-4 w-4" />Generate</>
         )}
@@ -459,4 +439,3 @@ export function UnifiedUploadForm({ folders, initialGenerate }: UnifiedUploadFor
     </form>
   );
 }
-

@@ -121,7 +121,8 @@ export async function processUnifiedUpload(
     if (summaryResult) summaryText = summaryResult.summary;
   } catch (err) {
     console.error("Generation error:", err);
-    return { success: false, error: "Generation failed. Please try again." };
+    const msg = err instanceof Error ? err.message : "Generation failed. Please try again.";
+    return { success: false, error: msg };
   }
 
   let examId: string | undefined;
